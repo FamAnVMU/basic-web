@@ -20,7 +20,7 @@ export const AboutSection: React.FC = () => {
             HỒ SƠ HOLOGRAPHIC
           </h2>
           <p className="text-slate-400 font-mono-code text-sm mt-2 max-w-xl">
-            Dữ liệu cá nhân, hành trình học tập tại Trường Đại học Hàng hải Việt Nam và định hướng kỹ sư phần mềm.
+            Thông tin sinh viên, hành trình tích lũy kiến thức tại Trường Đại học Hàng hải Việt Nam và mục tiêu học hỏi.
           </p>
         </div>
 
@@ -43,7 +43,6 @@ export const AboutSection: React.FC = () => {
                     alt="Phạm An - Sinh viên CNTT Đại học Hàng hải Việt Nam"
                     className="w-full h-full object-cover object-center group-hover:scale-105 transition-transform duration-500"
                     onError={(e) => {
-                      // Fallback if image fails to load
                       (e.target as HTMLImageElement).src = 'https://images.unsplash.com/photo-1534972195531-a756b1126f24?auto=format&fit=crop&w=600&q=80';
                     }}
                   />
@@ -92,16 +91,16 @@ export const AboutSection: React.FC = () => {
               <div className="p-6 rounded-2xl hologram-panel border-cyan-500/30">
                 <div className="flex items-center gap-2 text-xs font-mono-code text-cyan-400 mb-2">
                   <Compass className="w-4 h-4 text-cyan-400" />
-                  <span>SỨ MỆNH & TRIẾT LÝ PHÁT TRIỂN</span>
+                  <span>ĐỊNH HƯỚNG & THÁI ĐỘ HỌC TẬP</span>
                 </div>
                 <h4 className="text-lg font-bold text-white font-orbitron">
-                  Tinh Thần Hàng Hải & Khát Vọng Số
+                  Sinh Viên CNTT & Tinh Thần Cầu Thị
                 </h4>
                 <blockquote className="mt-2 text-sm text-cyan-100/90 italic pl-3 border-l-2 border-cyan-400 leading-relaxed font-sans">
                   "{PERSONAL_INFO.philosophy}"
                 </blockquote>
                 <p className="mt-3 text-sm text-slate-300 leading-relaxed">
-                  Là một sinh viên Công nghệ Thông tin tại ngôi trường giàu truyền thống Hàng hải, tôi rèn luyện cho mình tính kỷ luật cao, tư duy hệ thống vững vàng và khả năng tự nghiên cứu, thích nghi với những bài toán công nghệ phức tạp.
+                  Là một sinh viên Công nghệ Thông tin tại Trường Đại học Hàng hải Việt Nam, tôi hiểu rằng mình vẫn đang ở giai đoạn đầu của sự nghiệp lập trình. Vì vậy, tôi luôn giữ cho mình tinh thần cầu thị, chủ động tìm tòi những công nghệ mới, rèn luyện tư duy logic và mong muốn có cơ hội được thực tập, cọ xát trong môi trường thực tế.
                 </p>
               </div>
             </TiltCard>
@@ -113,9 +112,9 @@ export const AboutSection: React.FC = () => {
                   <div className="w-9 h-9 rounded-lg bg-cyan-950/80 border border-cyan-400/40 flex items-center justify-center text-cyan-400 mb-3">
                     <Code className="w-4 h-4" />
                   </div>
-                  <h5 className="font-orbitron font-bold text-sm text-white">Full-Stack & Web 3D</h5>
+                  <h5 className="font-orbitron font-bold text-sm text-white">Lập Trình Web Cơ Bản</h5>
                   <p className="text-xs text-slate-300 mt-1 leading-relaxed">
-                    Xây dựng ứng dụng web hiện đại từ kiến trúc Frontend tương tác cao (React, Three.js) đến hệ thống Backend mở rộng (Node.js, APIs).
+                    Nắm bắt kiến thức cơ bản về HTML/CSS/JS, tìm hiểu React, TypeScript và thực nghiệm xây dựng giao diện 3D với Three.js.
                   </p>
                 </div>
               </TiltCard>
@@ -125,9 +124,9 @@ export const AboutSection: React.FC = () => {
                   <div className="w-9 h-9 rounded-lg bg-cyan-950/80 border border-cyan-400/40 flex items-center justify-center text-cyan-400 mb-3">
                     <Cpu className="w-4 h-4" />
                   </div>
-                  <h5 className="font-orbitron font-bold text-sm text-white">Thuật Toán & Nền Tảng</h5>
+                  <h5 className="font-orbitron font-bold text-sm text-white">Nền Tảng Máy Tính</h5>
                   <p className="text-xs text-slate-300 mt-1 leading-relaxed">
-                    Nền móng giải thuật, cấu trúc dữ liệu, tối ưu hóa truy vấn CSDL quan hệ và kiến trúc hướng đối tượng (OOP) vững chắc.
+                    Được đào tạo chính quy về C/C++, Lập trình hướng đối tượng (OOP), Cấu trúc dữ liệu & Giải thuật và Cơ sở dữ liệu quan hệ.
                   </p>
                 </div>
               </TiltCard>
@@ -137,9 +136,9 @@ export const AboutSection: React.FC = () => {
                   <div className="w-9 h-9 rounded-lg bg-cyan-950/80 border border-cyan-400/40 flex items-center justify-center text-cyan-400 mb-3">
                     <Anchor className="w-4 h-4" />
                   </div>
-                  <h5 className="font-orbitron font-bold text-sm text-white">Ứng Dụng Hàng Hải & Cảng Biển</h5>
+                  <h5 className="font-orbitron font-bold text-sm text-white">Môi Trường Hàng Hải (VMU)</h5>
                   <p className="text-xs text-slate-300 mt-1 leading-relaxed">
-                    Thế mạnh nghiên cứu các giải pháp tin học hóa hàng hải, logistics cảng Hải Phòng, theo dõi hải trình và xử lý dữ liệu thực tế.
+                    Môi trường đào tạo giàu truyền thống tại Hải Phòng, rèn luyện tính kỷ luật, sự kiên trì và tinh thần trách nhiệm trong công việc.
                   </p>
                 </div>
               </TiltCard>
@@ -149,9 +148,9 @@ export const AboutSection: React.FC = () => {
                   <div className="w-9 h-9 rounded-lg bg-cyan-950/80 border border-cyan-400/40 flex items-center justify-center text-cyan-400 mb-3">
                     <Sparkles className="w-4 h-4" />
                   </div>
-                  <h5 className="font-orbitron font-bold text-sm text-white">Liên Tục Cải Tiến</h5>
+                  <h5 className="font-orbitron font-bold text-sm text-white">Sẵn Sàng Học Hỏi</h5>
                   <p className="text-xs text-slate-300 mt-1 leading-relaxed">
-                    Chủ động đón đầu các công nghệ mới, tư duy giải pháp và tinh thần hợp tác chuyên nghiệp trong môi trường phát triển linh hoạt.
+                    Chủ động tiếp thu góp ý, trau dồi tiếng Anh chuyên ngành và sẵn sàng thử sức với các bài toán công nghệ mới.
                   </p>
                 </div>
               </TiltCard>

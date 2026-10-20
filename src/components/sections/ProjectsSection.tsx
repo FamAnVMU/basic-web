@@ -42,13 +42,13 @@ export const ProjectsSection: React.FC = () => {
         <div className="mb-12">
           <div className="inline-flex items-center gap-2 px-3 py-1 rounded-md bg-cyan-950/60 border border-cyan-400/30 text-cyan-400 text-xs font-mono-code mb-3">
             <Layers className="w-3.5 h-3.5" />
-            <span>SECTOR 04 // KHÔNG GIAN TRƯNG BÀY DỰ ÁN</span>
+            <span>SECTOR 04 // KHÔNG GIAN DỰ ÁN & ĐỒ ÁN</span>
           </div>
           <h2 className="text-3xl sm:text-5xl font-extrabold font-orbitron text-white">
-            KHU VỰC DỰ ÁN CHIẾN LƯỢC
+            DỰ ÁN & ĐỒ ÁN HỌC TẬP
           </h2>
           <p className="text-slate-400 font-mono-code text-sm mt-2 max-w-2xl">
-            Các sản phẩm phần mềm tiêu biểu, kết hợp thế mạnh ngành Công nghệ Thông tin và giải pháp số hóa ứng dụng thực tiễn.
+            Các sản phẩm thực hành cá nhân và đồ án môn học tiêu biểu trong quá trình học tập tại Trường Đại học Hàng hải Việt Nam.
           </p>
         </div>
 

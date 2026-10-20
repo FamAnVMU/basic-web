@@ -9,10 +9,11 @@ Toàn bộ website là một hành trình tương tác đa chiều trong không 
 ## 🚀 Các Tính Năng Nổi Bật
 
 ### 1. Không Gian Vũ Trụ Sống Động (Three.js WebGL Engine)
-- **Nền sao 3 lớp chiều sâu**: Phân bổ hình cầu với các hạt sao xa, sao trung cảnh và sao phát sáng nhấp nháy chuyển động theo tốc độ khác nhau.
+- **Hệ thống hạt sao & Bụi vũ trụ mềm mại**: Sử dụng texture tỏa tròn mềm (radial soft-glow) tạo từ Canvas, biến các hạt sao xa, sao trung cảnh và bụi vũ trụ tiền cảnh thành những đốm sáng lung linh không bị răng cưa hay dạng hình vuông.
 - **Quả cầu hành tinh 3D chi tiết cao**: Bề mặt cấu tạo từ texture thuật toán (procedural generation), tái hiện lục địa, mảng đại dương và mạch năng lượng điện tử (cyber night lights) ở bán cầu tối.
-- **Quầng hào quang khí quyển Fresnel (Custom GLSL Shaders)**: Shader đỉnh và shader mảnh tạo hiệu ứng phát sáng viền cyan chân thực theo góc nhìn camera.
-- **Vành đai bụi vũ trụ & Vệ tinh quỹ đạo**: Vành đai xoay chậm và vệ tinh thám hiểm mang đèn hải đăng LED nhấp nháy bay quanh hành tinh.
+- **Hào quang khí quyển & Hạt tầng bình lưu (Atmospheric Aura & Fresnel)**: Quầng sáng cyan Fresnel kết hợp đám mây 450+ hạt năng lượng khí quyển trôi dạt chậm quanh bề mặt hành tinh.
+- **Vành đai hạt kép (Double Planetary Rings)**: Gồm vành đai năng lượng phát sáng bên trong và vành đai bụi vũ trụ khuếch tán bên ngoài, quay chậm uyển chuyển.
+- **Vệ tinh quỹ đạo**: Vệ tinh thám hiểm mang đèn hải đăng LED nhấp nháy bay quanh hành tinh theo chu kỳ thực tế.
 - **Bảng màu nhất quán**: Sắc đen vũ trụ `#02040a` kết hợp chùm sáng cyan neon `#00f3ff` & teal `#0891b2`.
 
 ### 2. Tương Tác 3D Theo Chuột & Thị Sai (Parallax)

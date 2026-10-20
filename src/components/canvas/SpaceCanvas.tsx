@@ -40,25 +40,52 @@ export const SpaceCanvas: React.FC<SpaceCanvasProps> = ({ scrollProgress }) => {
     renderer.setSize(window.innerWidth, window.innerHeight);
     renderer.setPixelRatio(Math.min(window.devicePixelRatio, isMobile ? 1.25 : 1.75));
     renderer.toneMapping = THREE.ACESFilmicToneMapping;
-    renderer.toneMappingExposure = 1.2;
+    renderer.toneMappingExposure = 1.25;
 
     container.appendChild(renderer.domElement);
 
-    // 2. Lighting (Cinematic Space Lighting)
-    const ambientLight = new THREE.AmbientLight(0x071524, 0.9);
+    // 2. High-Quality Circular Glowing Particle Texture (Pure Canvas Generation)
+    const createParticleTexture = () => {
+      const canvas = document.createElement('canvas');
+      canvas.width = 64;
+      canvas.height = 64;
+      const ctx = canvas.getContext('2d');
+      if (!ctx) return new THREE.Texture();
+
+      const grad = ctx.createRadialGradient(32, 32, 0, 32, 32, 32);
+      grad.addColorStop(0, 'rgba(255, 255, 255, 1)');
+      grad.addColorStop(0.2, 'rgba(0, 243, 255, 0.9)');
+      grad.addColorStop(0.5, 'rgba(6, 182, 212, 0.35)');
+      grad.addColorStop(0.8, 'rgba(2, 132, 199, 0.1)');
+      grad.addColorStop(1, 'rgba(0, 0, 0, 0)');
+
+      ctx.fillStyle = grad;
+      ctx.fillRect(0, 0, 64, 64);
+
+      const texture = new THREE.CanvasTexture(canvas);
+      texture.needsUpdate = true;
+      return texture;
+    };
+
+    const particleTexture = createParticleTexture();
+
+    // 3. Lighting (Cinematic Deep Space)
+    const ambientLight = new THREE.AmbientLight(0x071524, 0.95);
     scene.add(ambientLight);
 
-    // Key Light (Cyan / Star sun)
-    const sunLight = new THREE.DirectionalLight(0x40e0d0, 2.8);
-    sunLight.position.set(20, 15, 25);
+    // Key Light (Cyan / Star Sun)
+    const sunLight = new THREE.DirectionalLight(0x40e0d0, 2.9);
+    sunLight.position.set(22, 16, 26);
     scene.add(sunLight);
 
     // Subtle Cyan Rim Fill Light
-    const rimLight = new THREE.DirectionalLight(0x00f3ff, 1.2);
-    rimLight.position.set(-25, -10, -15);
+    const rimLight = new THREE.DirectionalLight(0x00f3ff, 1.3);
+    rimLight.position.set(-25, -12, -15);
     scene.add(rimLight);
 
-    // 3. Multi-Layer Starfields & Cosmic Dust
+    // 4. Multi-Layer Starfields
+    const starCountFactor = isMobile ? 0.45 : 1;
+
     const createStarField = (count: number, size: number, color: number, spread: number) => {
       const geometry = new THREE.BufferGeometry();
       const positions = new Float32Array(count * 3);
@@ -67,7 +94,6 @@ export const SpaceCanvas: React.FC<SpaceCanvasProps> = ({ scrollProgress }) => {
 
       for (let i = 0; i < count; i++) {
         const i3 = i * 3;
-        // Spherical distribution
         const radius = THREE.MathUtils.randFloat(spread * 0.3, spread);
         const theta = Math.random() * Math.PI * 2;
         const phi = Math.acos(THREE.MathUtils.randFloatSpread(2));
@@ -76,8 +102,7 @@ export const SpaceCanvas: React.FC<SpaceCanvasProps> = ({ scrollProgress }) => {
         positions[i3 + 1] = radius * Math.sin(phi) * Math.sin(theta);
         positions[i3 + 2] = radius * Math.cos(phi);
 
-        // Subtle color variance
-        const lum = THREE.MathUtils.randFloat(0.7, 1.2);
+        const lum = THREE.MathUtils.randFloat(0.75, 1.25);
         colors[i3] = c.r * lum;
         colors[i3 + 1] = c.g * lum;
         colors[i3 + 2] = c.b * lum;
@@ -88,6 +113,7 @@ export const SpaceCanvas: React.FC<SpaceCanvasProps> = ({ scrollProgress }) => {
 
       const material = new THREE.PointsMaterial({
         size,
+        map: particleTexture,
         vertexColors: true,
         transparent: true,
         opacity: 0.85,
@@ -98,17 +124,16 @@ export const SpaceCanvas: React.FC<SpaceCanvasProps> = ({ scrollProgress }) => {
       return new THREE.Points(geometry, material);
     };
 
-    const starCountFactor = isMobile ? 0.4 : 1;
-    const deepStars = createStarField(Math.floor(2500 * starCountFactor), 1.2, 0x88ccff, 900);
-    const midStars = createStarField(Math.floor(1200 * starCountFactor), 2.2, 0x00f3ff, 600);
-    const closeStars = createStarField(Math.floor(350 * starCountFactor), 3.5, 0xffffff, 350);
+    const deepStars = createStarField(Math.floor(2200 * starCountFactor), 2.2, 0x88ccff, 950);
+    const midStars = createStarField(Math.floor(1000 * starCountFactor), 3.4, 0x00f3ff, 620);
+    const closeStars = createStarField(Math.floor(300 * starCountFactor), 5.5, 0xffffff, 360);
 
     scene.add(deepStars);
     scene.add(midStars);
     scene.add(closeStars);
 
     // Cosmic Dust in Foreground
-    const dustCount = Math.floor(250 * starCountFactor);
+    const dustCount = Math.floor(200 * starCountFactor);
     const dustGeo = new THREE.BufferGeometry();
     const dustPos = new Float32Array(dustCount * 3);
     for (let i = 0; i < dustCount * 3; i += 3) {
@@ -118,17 +143,18 @@ export const SpaceCanvas: React.FC<SpaceCanvasProps> = ({ scrollProgress }) => {
     }
     dustGeo.setAttribute('position', new THREE.BufferAttribute(dustPos, 3));
     const dustMat = new THREE.PointsMaterial({
-      size: 1.8,
+      size: 3.2,
+      map: particleTexture,
       color: 0x00e5ff,
       transparent: true,
-      opacity: 0.4,
+      opacity: 0.45,
       blending: THREE.AdditiveBlending,
+      depthWrite: false,
     });
     const cosmicDust = new THREE.Points(dustGeo, dustMat);
     scene.add(cosmicDust);
 
-    // 4. Centerpiece 3D Planet & Atmosphere
-    // Procedural Planet Texture
+    // 5. Centerpiece 3D Planet & Atmosphere
     const createPlanetTexture = () => {
       const canvas = document.createElement('canvas');
       canvas.width = 1024;
@@ -136,7 +162,6 @@ export const SpaceCanvas: React.FC<SpaceCanvasProps> = ({ scrollProgress }) => {
       const ctx = canvas.getContext('2d');
       if (!ctx) return new THREE.Texture();
 
-      // Deep Space Base
       ctx.fillStyle = '#030b18';
       ctx.fillRect(0, 0, canvas.width, canvas.height);
 
@@ -155,7 +180,7 @@ export const SpaceCanvas: React.FC<SpaceCanvasProps> = ({ scrollProgress }) => {
         ctx.fill();
       }
 
-      // Tech Grid & Cybernetic Glowing Veins (Night Lights)
+      // Tech Grid & Glowing Cyber Veins (Night Lights)
       ctx.strokeStyle = '#00f3ff';
       ctx.lineWidth = 1;
       ctx.globalAlpha = 0.6;
@@ -168,7 +193,7 @@ export const SpaceCanvas: React.FC<SpaceCanvasProps> = ({ scrollProgress }) => {
         ctx.stroke();
       }
 
-      // Bright Tech Nodes
+      // Tech Nodes
       ctx.fillStyle = '#ffffff';
       for (let i = 0; i < 120; i++) {
         const nx = Math.random() * canvas.width;
@@ -187,7 +212,6 @@ export const SpaceCanvas: React.FC<SpaceCanvasProps> = ({ scrollProgress }) => {
 
     const planetTexture = createPlanetTexture();
 
-    // Planet Core Mesh
     const planetGroup = new THREE.Group();
     scene.add(planetGroup);
 
@@ -235,69 +259,140 @@ export const SpaceCanvas: React.FC<SpaceCanvasProps> = ({ scrollProgress }) => {
     const atmosphereMesh = new THREE.Mesh(atmosphereGeo, atmosphereMat);
     planetGroup.add(atmosphereMesh);
 
-    // Planetary Ring with Cyber Debris
-    const ringRadiusInner = planetRadius * 1.45;
-    const ringRadiusOuter = planetRadius * 2.3;
-    const ringParticleCount = Math.floor(1500 * starCountFactor);
-    const ringGeo = new THREE.BufferGeometry();
-    const ringPos = new Float32Array(ringParticleCount * 3);
-    const ringColors = new Float32Array(ringParticleCount * 3);
+    // 6. ENHANCED PLANET PARTICLE SYSTEMS (Atmosphere Aura & Double Rings)
+    // A. Planetary Atmosphere Aura Particles (Cosmic Stratospheric Motes)
+    const auraCount = Math.floor(450 * starCountFactor);
+    const auraGeo = new THREE.BufferGeometry();
+    const auraPos = new Float32Array(auraCount * 3);
+    const auraColors = new Float32Array(auraCount * 3);
+    const auraOriginalDist = new Float32Array(auraCount);
 
-    for (let i = 0; i < ringParticleCount; i++) {
+    for (let i = 0; i < auraCount; i++) {
       const i3 = i * 3;
-      const angle = Math.random() * Math.PI * 2;
-      const dist = THREE.MathUtils.randFloat(ringRadiusInner, ringRadiusOuter);
-      ringPos[i3] = Math.cos(angle) * dist;
-      ringPos[i3 + 1] = THREE.MathUtils.randFloatSpread(0.4);
-      ringPos[i3 + 2] = Math.sin(angle) * dist;
+      const dist = THREE.MathUtils.randFloat(planetRadius * 1.06, planetRadius * 1.38);
+      auraOriginalDist[i] = dist;
 
-      // Cyan to silver gradient
-      const factor = Math.random();
-      ringColors[i3] = factor * 0.2;
-      ringColors[i3 + 1] = 0.8 + factor * 0.2;
-      ringColors[i3 + 2] = 1.0;
+      const theta = Math.random() * Math.PI * 2;
+      const phi = Math.acos(THREE.MathUtils.randFloatSpread(2));
+
+      auraPos[i3] = dist * Math.sin(phi) * Math.cos(theta);
+      auraPos[i3 + 1] = dist * Math.sin(phi) * Math.sin(theta);
+      auraPos[i3 + 2] = dist * Math.cos(phi);
+
+      // Cyan to turquoise electric glow
+      auraColors[i3] = 0.0;
+      auraColors[i3 + 1] = THREE.MathUtils.randFloat(0.85, 1.0);
+      auraColors[i3 + 2] = 1.0;
     }
 
-    ringGeo.setAttribute('position', new THREE.BufferAttribute(ringPos, 3));
-    ringGeo.setAttribute('color', new THREE.BufferAttribute(ringColors, 3));
+    auraGeo.setAttribute('position', new THREE.BufferAttribute(auraPos, 3));
+    auraGeo.setAttribute('color', new THREE.BufferAttribute(auraColors, 3));
 
-    const ringMat = new THREE.PointsMaterial({
-      size: 1.4,
+    const auraMat = new THREE.PointsMaterial({
+      size: 2.8,
+      map: particleTexture,
       vertexColors: true,
       transparent: true,
       opacity: 0.65,
       blending: THREE.AdditiveBlending,
       depthWrite: false,
     });
-    const planetRing = new THREE.Points(ringGeo, ringMat);
+    const planetAura = new THREE.Points(auraGeo, auraMat);
+    planetGroup.add(planetAura);
+
+    // B. Inner Dense Glowing Energy Ring
+    const innerRingCount = Math.floor(1200 * starCountFactor);
+    const innerRingGeo = new THREE.BufferGeometry();
+    const innerRingPos = new Float32Array(innerRingCount * 3);
+    const innerRingColors = new Float32Array(innerRingCount * 3);
+    const ringRadiusInner = planetRadius * 1.45;
+    const ringRadiusOuter = planetRadius * 2.15;
+
+    for (let i = 0; i < innerRingCount; i++) {
+      const i3 = i * 3;
+      const angle = Math.random() * Math.PI * 2;
+      const dist = THREE.MathUtils.randFloat(ringRadiusInner, ringRadiusOuter);
+
+      innerRingPos[i3] = Math.cos(angle) * dist;
+      innerRingPos[i3 + 1] = THREE.MathUtils.randFloatSpread(0.35);
+      innerRingPos[i3 + 2] = Math.sin(angle) * dist;
+
+      const f = Math.random();
+      innerRingColors[i3] = f * 0.3;
+      innerRingColors[i3 + 1] = 0.85 + f * 0.15;
+      innerRingColors[i3 + 2] = 1.0;
+    }
+
+    innerRingGeo.setAttribute('position', new THREE.BufferAttribute(innerRingPos, 3));
+    innerRingGeo.setAttribute('color', new THREE.BufferAttribute(innerRingColors, 3));
+
+    const innerRingMat = new THREE.PointsMaterial({
+      size: 2.4,
+      map: particleTexture,
+      vertexColors: true,
+      transparent: true,
+      opacity: 0.75,
+      blending: THREE.AdditiveBlending,
+      depthWrite: false,
+    });
+    const planetRing = new THREE.Points(innerRingGeo, innerRingMat);
     planetRing.rotation.x = Math.PI * 0.35;
     planetRing.rotation.y = Math.PI * 0.12;
     planetGroup.add(planetRing);
 
-    // Orbiting Satellite / Beacon Probe
+    // C. Outer Diffuse Cosmic Ring
+    const outerRingCount = Math.floor(600 * starCountFactor);
+    const outerRingGeo = new THREE.BufferGeometry();
+    const outerRingPos = new Float32Array(outerRingCount * 3);
+    const outerRingDist = planetRadius * 2.45;
+
+    for (let i = 0; i < outerRingCount; i++) {
+      const i3 = i * 3;
+      const angle = Math.random() * Math.PI * 2;
+      const dist = THREE.MathUtils.randFloat(ringRadiusOuter, outerRingDist);
+
+      outerRingPos[i3] = Math.cos(angle) * dist;
+      outerRingPos[i3 + 1] = THREE.MathUtils.randFloatSpread(0.8);
+      outerRingPos[i3 + 2] = Math.sin(angle) * dist;
+    }
+
+    outerRingGeo.setAttribute('position', new THREE.BufferAttribute(outerRingPos, 3));
+    const outerRingMat = new THREE.PointsMaterial({
+      size: 3.6,
+      map: particleTexture,
+      color: 0x38bdf8,
+      transparent: true,
+      opacity: 0.45,
+      blending: THREE.AdditiveBlending,
+      depthWrite: false,
+    });
+    const outerRing = new THREE.Points(outerRingGeo, outerRingMat);
+    outerRing.rotation.x = Math.PI * 0.35;
+    outerRing.rotation.y = Math.PI * 0.12;
+    planetGroup.add(outerRing);
+
+    // D. Orbiting Satellite with Blinking LED Beacon
     const satelliteGroup = new THREE.Group();
     const probeBodyGeo = new THREE.OctahedronGeometry(0.35, 0);
     const probeBodyMat = new THREE.MeshStandardMaterial({
       color: 0x00f3ff,
       emissive: 0x00f3ff,
-      emissiveIntensity: 0.8,
+      emissiveIntensity: 0.85,
       metalness: 0.9,
     });
     const probeMesh = new THREE.Mesh(probeBodyGeo, probeBodyMat);
     satelliteGroup.add(probeMesh);
 
-    // Probe solar panels
     const panelGeo = new THREE.BoxGeometry(1.6, 0.05, 0.4);
     const panelMat = new THREE.MeshStandardMaterial({ color: 0x032b45, metalness: 0.8 });
     const panelMesh = new THREE.Mesh(panelGeo, panelMat);
     satelliteGroup.add(panelMesh);
 
-    // Blinking light
     const probeLight = new THREE.PointLight(0x00f3ff, 2.5, 12);
     satelliteGroup.add(probeLight);
     scene.add(satelliteGroup);
 
-    // Distant Moon / Second celestial body
+    // Distant Moon
     const moonGeo = new THREE.SphereGeometry(1.8, 32, 32);
     const moonMat = new THREE.MeshStandardMaterial({
       color: 0x475569,
@@ -309,7 +404,7 @@ export const SpaceCanvas: React.FC<SpaceCanvasProps> = ({ scrollProgress }) => {
     moonMesh.position.set(-35, 18, -40);
     scene.add(moonMesh);
 
-    // 5. Mouse Interaction & Parallax Variables
+    // 7. Mouse Interaction & Parallax Variables
     const mouse = {
       x: 0,
       y: 0,
@@ -318,14 +413,12 @@ export const SpaceCanvas: React.FC<SpaceCanvasProps> = ({ scrollProgress }) => {
     };
 
     const handleMouseMove = (e: MouseEvent) => {
-      // Normalize mouse to [-1, 1]
       mouse.targetX = (e.clientX / window.innerWidth) * 2 - 1;
       mouse.targetY = -(e.clientY / window.innerHeight) * 2 + 1;
     };
 
     window.addEventListener('mousemove', handleMouseMove, { passive: true });
 
-    // Handle Resize
     const handleResize = () => {
       if (!renderer || !camera) return;
       camera.aspect = window.innerWidth / window.innerHeight;
@@ -335,20 +428,13 @@ export const SpaceCanvas: React.FC<SpaceCanvasProps> = ({ scrollProgress }) => {
 
     window.addEventListener('resize', handleResize);
 
-    // 6. Camera Waypoints for the 6 Cosmic Sectors
-    // [Opening -> About -> Skills -> Projects -> Journey -> Contact]
+    // 8. Camera Waypoints across 6 Sectors
     const waypoints = [
-      // 0: Hero / Opening - Majestic vista of planet
       { camPos: new THREE.Vector3(0, 1.5, 26), lookAt: new THREE.Vector3(0, 0, 0), planetPos: new THREE.Vector3(4.5, -0.5, 0) },
-      // 1: About / Holographic Dossier - Zoom in, planet tilts, focus on digital grid
       { camPos: new THREE.Vector3(-4, 0.5, 20), lookAt: new THREE.Vector3(1, 0, 0), planetPos: new THREE.Vector3(7, -0.2, -2) },
-      // 2: Skills / Energy Nodes - Viewing orbital ring and planetary plane
       { camPos: new THREE.Vector3(6, 4, 22), lookAt: new THREE.Vector3(-1, 1, 0), planetPos: new THREE.Vector3(-6, -1.5, -4) },
-      // 3: Projects / Deep Space Station - Wide orbital track
       { camPos: new THREE.Vector3(-3, -2, 24), lookAt: new THREE.Vector3(1, -0.5, 0), planetPos: new THREE.Vector3(5.5, 2.5, -6) },
-      // 4: Journey / Glowing Orbital Trajectory - Panoramic angle showing ring arc
       { camPos: new THREE.Vector3(5, 3, 21), lookAt: new THREE.Vector3(0, 0, -2), planetPos: new THREE.Vector3(-4, -0.8, -3) },
-      // 5: Contact / Subspace Gateway - Facing forward into the cosmic horizon
       { camPos: new THREE.Vector3(0, 1, 23), lookAt: new THREE.Vector3(0, 0, -5), planetPos: new THREE.Vector3(0, -3.2, -5) },
     ];
 
@@ -356,7 +442,7 @@ export const SpaceCanvas: React.FC<SpaceCanvasProps> = ({ scrollProgress }) => {
     const currentLookAt = new THREE.Vector3().copy(waypoints[0].lookAt);
     const currentPlanetPos = new THREE.Vector3().copy(waypoints[0].planetPos);
 
-    // 7. Animation Loop
+    // 9. Animation Loop
     let animationFrameId: number;
     let clock = new THREE.Clock();
     let satelliteAngle = 0;
@@ -371,14 +457,12 @@ export const SpaceCanvas: React.FC<SpaceCanvasProps> = ({ scrollProgress }) => {
       mouse.x += (mouse.targetX - mouse.x) * 0.05;
       mouse.y += (mouse.targetY - mouse.y) * 0.05;
 
-      // Calculate Waypoint Interpolation based on scrollProgress
+      // Waypoint Interpolation based on scrollProgress
       const progress = THREE.MathUtils.clamp(scrollRef.current, 0, 1);
       const totalSegments = waypoints.length - 1;
       const segmentProgress = progress * totalSegments;
       const segmentIndex = Math.min(Math.floor(segmentProgress), totalSegments - 1);
       const segmentFraction = segmentProgress - segmentIndex;
-
-      // Smooth hermite / smoothstep interpolation
       const smoothFraction = segmentFraction * segmentFraction * (3 - 2 * segmentFraction);
 
       const wpStart = waypoints[segmentIndex];
@@ -388,13 +472,11 @@ export const SpaceCanvas: React.FC<SpaceCanvasProps> = ({ scrollProgress }) => {
       const targetLookAt = new THREE.Vector3().lerpVectors(wpStart.lookAt, wpEnd.lookAt, smoothFraction);
       const targetPlanetPos = new THREE.Vector3().lerpVectors(wpStart.planetPos, wpEnd.planetPos, smoothFraction);
 
-      // Apply subtle mouse parallax to camera position and target
       const parallaxFactor = prefersReducedMotion ? 0.05 : 0.8;
       targetCamPos.x += mouse.x * parallaxFactor;
       targetCamPos.y += mouse.y * (parallaxFactor * 0.7);
       targetLookAt.x += mouse.x * (parallaxFactor * 0.4);
 
-      // Interpolate current camera & planet positions
       currentCamPos.lerp(targetCamPos, 0.06);
       currentLookAt.lerp(targetLookAt, 0.06);
       currentPlanetPos.lerp(targetPlanetPos, 0.06);
@@ -407,13 +489,17 @@ export const SpaceCanvas: React.FC<SpaceCanvasProps> = ({ scrollProgress }) => {
       // Continuous subtle planetary rotation
       const spinSpeed = prefersReducedMotion ? 0.02 : 0.08;
       planetMesh.rotation.y += delta * spinSpeed;
-      planetRing.rotation.z += delta * (spinSpeed * 0.4);
+      planetAura.rotation.y += delta * (spinSpeed * 1.25);
+      planetAura.rotation.x = Math.sin(elapsed * 0.2) * 0.05;
+
+      planetRing.rotation.z += delta * (spinSpeed * 0.45);
+      outerRing.rotation.z += delta * (spinSpeed * 0.25);
 
       // Mouse interactive tilt for planet
       planetGroup.rotation.x = mouse.y * 0.12;
       planetGroup.rotation.z = -mouse.x * 0.12;
 
-      // Orbiting Satellite calculation
+      // Orbiting Satellite
       satelliteAngle += delta * 0.45;
       const satRadius = planetRadius * 1.6;
       satelliteGroup.position.set(
@@ -422,18 +508,16 @@ export const SpaceCanvas: React.FC<SpaceCanvasProps> = ({ scrollProgress }) => {
         currentPlanetPos.z + Math.sin(satelliteAngle) * satRadius
       );
       satelliteGroup.lookAt(currentPlanetPos);
-
-      // Blinking beacon on satellite
       probeLight.intensity = Math.sin(elapsed * 6) > 0.3 ? 3.5 : 0.8;
 
       // Background Starfields Parallax Rotation
-      deepStars.rotation.y = elapsed * 0.005 + mouse.x * 0.02;
-      midStars.rotation.y = elapsed * 0.012 + mouse.x * 0.04;
-      closeStars.rotation.y = elapsed * 0.02 + mouse.x * 0.08;
+      deepStars.rotation.y = elapsed * 0.004 + mouse.x * 0.02;
+      midStars.rotation.y = elapsed * 0.009 + mouse.x * 0.04;
+      closeStars.rotation.y = elapsed * 0.016 + mouse.x * 0.08;
 
       // Cosmic dust drift
-      cosmicDust.rotation.y = elapsed * 0.015;
-      cosmicDust.rotation.x = elapsed * 0.008;
+      cosmicDust.rotation.y = elapsed * 0.012;
+      cosmicDust.rotation.x = elapsed * 0.006;
 
       // Moon subtle orbit
       moonMesh.position.x = -35 + Math.sin(elapsed * 0.08) * 4;
@@ -444,20 +528,24 @@ export const SpaceCanvas: React.FC<SpaceCanvasProps> = ({ scrollProgress }) => {
 
     animate();
 
-    // 8. Cleanup
+    // 10. Cleanup
     return () => {
       cancelAnimationFrame(animationFrameId);
       window.removeEventListener('mousemove', handleMouseMove);
       window.removeEventListener('resize', handleResize);
 
-      // Dispose Three.js objects
+      particleTexture.dispose();
       planetTexture.dispose();
       planetGeo.dispose();
       planetMat.dispose();
       atmosphereGeo.dispose();
       atmosphereMat.dispose();
-      ringGeo.dispose();
-      ringMat.dispose();
+      auraGeo.dispose();
+      auraMat.dispose();
+      innerRingGeo.dispose();
+      innerRingMat.dispose();
+      outerRingGeo.dispose();
+      outerRingMat.dispose();
       probeBodyGeo.dispose();
       probeBodyMat.dispose();
       panelGeo.dispose();
