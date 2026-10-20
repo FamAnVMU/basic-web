@@ -1,14 +1,28 @@
 import React, { useState } from 'react';
 import { SOLAR_PLANETS } from './data/solarSystemData';
 import { SolarSystemCanvas } from './components/canvas/SolarSystemCanvas';
+import type { SatelliteScreenPosition } from './components/canvas/SolarSystemCanvas';
 import { SolarHeader } from './components/ui/SolarHeader';
 import { OrbitPlanetBadges } from './components/ui/OrbitPlanetBadges';
 import { PlanetDock } from './components/ui/PlanetDock';
 import { PlanetDetailModal } from './components/ui/PlanetDetailModal';
+import { PlanetHoverTooltip } from './components/ui/PlanetHoverTooltip';
+import { SatelliteOverlay } from './components/ui/SatelliteOverlay';
 import { soundManager } from './utils/soundEffects';
+
+interface HoverInfo {
+  id: string;
+  name: string;
+  subtitle: string;
+  x: number;
+  y: number;
+}
 
 export const App: React.FC = () => {
   const [activePlanetId, setActivePlanetId] = useState<string>('home');
+  const [isOverview, setIsOverview] = useState<boolean>(false);
+  const [hoverInfo, setHoverInfo] = useState<HoverInfo | null>(null);
+  const [satellites, setSatellites] = useState<SatelliteScreenPosition[]>([]);
   const [isDetailsOpen, setIsDetailsOpen] = useState<boolean>(false);
   const [isMuted, setIsMuted] = useState<boolean>(true);
 
@@ -17,7 +31,8 @@ export const App: React.FC = () => {
 
   const handleSelectPlanet = (id: string) => {
     setActivePlanetId(id);
-    soundManager.playClick();
+    setIsOverview(false); // Zoom into the selected planet!
+    soundManager.playWarp();
   };
 
   const handleToggleSound = () => {
@@ -25,13 +40,32 @@ export const App: React.FC = () => {
     setIsMuted(nextState);
   };
 
+  const handleToggleOverview = () => {
+    soundManager.playClick();
+    setIsOverview((prev) => !prev);
+  };
+
   return (
     <div className="relative w-screen h-screen overflow-hidden bg-[#020612] text-slate-100 select-none">
-      {/* 3D Interactive Solar System Canvas */}
+      {/* 3D High-Res Solar System Canvas with Camera Flight & Orbiting Satellites */}
       <SolarSystemCanvas
         activePlanetId={activePlanetId}
+        isOverview={isOverview}
         onSelectPlanet={handleSelectPlanet}
+        onHoverPlanet={setHoverInfo}
+        onUpdateSatellitePositions={setSatellites}
       />
+
+      {/* Hover Holographic Tooltip HUD */}
+      <PlanetHoverTooltip hoverInfo={hoverInfo} />
+
+      {/* Orbiting Satellite Data Chips (Links & Info) */}
+      {!isOverview && (
+        <SatelliteOverlay
+          satellites={satellites}
+          onOpenDetails={() => setIsDetailsOpen(true)}
+        />
+      )}
 
       {/* Top Header & Telemetry Data Row (matching reference screenshot) */}
       <SolarHeader
@@ -40,6 +74,8 @@ export const App: React.FC = () => {
         isMuted={isMuted}
         onToggleSound={handleToggleSound}
         onOpenDetails={() => setIsDetailsOpen(true)}
+        isOverview={isOverview}
+        onToggleOverview={handleToggleOverview}
       />
 
       {/* Floating Orbital Labels (ETHERON / THERONIX style) */}

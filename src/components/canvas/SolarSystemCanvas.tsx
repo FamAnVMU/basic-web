@@ -1,23 +1,53 @@
 import React, { useEffect, useRef } from 'react';
 import * as THREE from 'three';
 import { SOLAR_PLANETS } from '../../data/solarSystemData';
-import type { PlanetData } from '../../data/solarSystemData';
+import type { PlanetSatellite } from '../../data/solarSystemData';
+
+interface HoverInfo {
+  id: string;
+  name: string;
+  subtitle: string;
+  x: number;
+  y: number;
+}
+
+export interface SatelliteScreenPosition {
+  id: string;
+  x: number;
+  y: number;
+  satellite: PlanetSatellite;
+}
 
 interface SolarSystemCanvasProps {
   activePlanetId: string;
+  isOverview: boolean;
   onSelectPlanet: (planetId: string) => void;
+  onHoverPlanet: (info: HoverInfo | null) => void;
+  onUpdateSatellitePositions: (positions: SatelliteScreenPosition[]) => void;
 }
 
 export const SolarSystemCanvas: React.FC<SolarSystemCanvasProps> = ({
   activePlanetId,
+  isOverview,
   onSelectPlanet,
+  onHoverPlanet,
+  onUpdateSatellitePositions,
 }) => {
   const containerRef = useRef<HTMLDivElement>(null);
   const activePlanetRef = useRef<string>(activePlanetId);
   activePlanetRef.current = activePlanetId;
 
+  const isOverviewRef = useRef<boolean>(isOverview);
+  isOverviewRef.current = isOverview;
+
   const onSelectRef = useRef(onSelectPlanet);
   onSelectRef.current = onSelectPlanet;
+
+  const onHoverRef = useRef(onHoverPlanet);
+  onHoverRef.current = onHoverPlanet;
+
+  const onUpdateSatellitesRef = useRef(onUpdateSatellitePositions);
+  onUpdateSatellitesRef.current = onUpdateSatellitePositions;
 
   useEffect(() => {
     const container = containerRef.current;
@@ -25,17 +55,17 @@ export const SolarSystemCanvas: React.FC<SolarSystemCanvasProps> = ({
 
     const isMobile = window.innerWidth < 768;
 
-    // 1. Scene, Camera & WebGL Renderer
+    // 1. Scene, Camera & Renderer
     const scene = new THREE.Scene();
-    scene.fog = new THREE.FogExp2(0x020612, 0.0009);
+    scene.fog = new THREE.FogExp2(0x020612, 0.0008);
 
     const camera = new THREE.PerspectiveCamera(
       48,
       window.innerWidth / window.innerHeight,
       0.1,
-      2000
+      2500
     );
-    // Positioned to give the exact vista shown in the reference image
+    // Initial overview position
     camera.position.set(0, 4.5, 26);
 
     const renderer = new THREE.WebGLRenderer({
@@ -45,26 +75,15 @@ export const SolarSystemCanvas: React.FC<SolarSystemCanvasProps> = ({
     });
     renderer.setClearColor(0x020612, 1);
     renderer.setSize(window.innerWidth, window.innerHeight);
-    renderer.setPixelRatio(Math.min(window.devicePixelRatio, isMobile ? 1.25 : 1.75));
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio, isMobile ? 1.25 : 2.0));
     renderer.toneMapping = THREE.ACESFilmicToneMapping;
-    renderer.toneMappingExposure = 1.2;
+    renderer.toneMappingExposure = 1.25;
 
     container.appendChild(renderer.domElement);
 
-    // 2. Lighting (Cinematic Sun from Upper-Right)
-    const ambientLight = new THREE.AmbientLight(0x0d1b2a, 1.1);
-    scene.add(ambientLight);
+    const maxAnisotropy = renderer.capabilities.getMaxAnisotropy();
 
-    const sunLight = new THREE.DirectionalLight(0x7dd3fc, 3.4);
-    sunLight.position.set(24, 18, 22);
-    scene.add(sunLight);
-
-    // Subtle blue rim light from bottom-left
-    const rimLight = new THREE.DirectionalLight(0x0284c7, 1.4);
-    rimLight.position.set(-20, -10, -10);
-    scene.add(rimLight);
-
-    // 3. Circular Soft-Glow Particle Texture for Stars & Dust
+    // 2. High-Res Particle Texture
     const createParticleTexture = () => {
       const canvas = document.createElement('canvas');
       canvas.width = 64;
@@ -74,8 +93,8 @@ export const SolarSystemCanvas: React.FC<SolarSystemCanvasProps> = ({
 
       const grad = ctx.createRadialGradient(32, 32, 0, 32, 32, 32);
       grad.addColorStop(0, 'rgba(255, 255, 255, 1)');
-      grad.addColorStop(0.2, 'rgba(56, 189, 248, 0.9)');
-      grad.addColorStop(0.5, 'rgba(14, 116, 144, 0.3)');
+      grad.addColorStop(0.2, 'rgba(56, 189, 248, 0.95)');
+      grad.addColorStop(0.5, 'rgba(14, 116, 144, 0.35)');
       grad.addColorStop(1, 'rgba(0, 0, 0, 0)');
 
       ctx.fillStyle = grad;
@@ -88,15 +107,27 @@ export const SolarSystemCanvas: React.FC<SolarSystemCanvasProps> = ({
 
     const particleTexture = createParticleTexture();
 
-    // 4. Background Starfields
-    const starCount = isMobile ? 800 : 1800;
+    // 3. Cinematic Star Lighting
+    const ambientLight = new THREE.AmbientLight(0x0d1e34, 1.2);
+    scene.add(ambientLight);
+
+    const sunLight = new THREE.DirectionalLight(0x93c5fd, 3.8);
+    sunLight.position.set(28, 20, 24);
+    scene.add(sunLight);
+
+    const rimLight = new THREE.DirectionalLight(0x0284c7, 1.6);
+    rimLight.position.set(-25, -12, -12);
+    scene.add(rimLight);
+
+    // 4. Background Starfields & Cosmic Dust
+    const starCount = isMobile ? 900 : 2000;
     const starGeo = new THREE.BufferGeometry();
     const starPos = new Float32Array(starCount * 3);
     const starColors = new Float32Array(starCount * 3);
 
     for (let i = 0; i < starCount; i++) {
       const i3 = i * 3;
-      const radius = THREE.MathUtils.randFloat(250, 750);
+      const radius = THREE.MathUtils.randFloat(260, 800);
       const theta = Math.random() * Math.PI * 2;
       const phi = Math.acos(THREE.MathUtils.randFloatSpread(2));
 
@@ -104,8 +135,8 @@ export const SolarSystemCanvas: React.FC<SolarSystemCanvasProps> = ({
       starPos[i3 + 1] = radius * Math.sin(phi) * Math.sin(theta);
       starPos[i3 + 2] = radius * Math.cos(phi);
 
-      const lum = THREE.MathUtils.randFloat(0.6, 1.2);
-      starColors[i3] = 0.6 * lum;
+      const lum = THREE.MathUtils.randFloat(0.65, 1.3);
+      starColors[i3] = 0.55 * lum;
       starColors[i3 + 1] = 0.85 * lum;
       starColors[i3 + 2] = 1.0 * lum;
     }
@@ -118,133 +149,168 @@ export const SolarSystemCanvas: React.FC<SolarSystemCanvasProps> = ({
       map: particleTexture,
       vertexColors: true,
       transparent: true,
-      opacity: 0.8,
+      opacity: 0.85,
       blending: THREE.AdditiveBlending,
       depthWrite: false,
     });
     const starField = new THREE.Points(starGeo, starMat);
     scene.add(starField);
 
-    // 5. Procedural Planet Texture Generator
-    const createPlanetCanvasTexture = (type: PlanetData['textureType']) => {
+    // 5. High-Resolution (2048x1024) Procedural Textures with Sharp Details
+    const createHighResPlanetTexture = (type: string) => {
       const canvas = document.createElement('canvas');
-      canvas.width = 1024;
-      canvas.height = 512;
+      canvas.width = 2048;
+      canvas.height = 1024;
       const ctx = canvas.getContext('2d');
       if (!ctx) return new THREE.Texture();
 
       if (type === 'earth') {
-        // Deep vibrant blue oceans with swirling clouds & continents (like ORIONIS in reference image)
-        ctx.fillStyle = '#03193a';
+        // Deep Obsidian Ocean
+        ctx.fillStyle = '#021838';
         ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-        // Landmasses / continents
-        ctx.fillStyle = '#063462';
-        for (let i = 0; i < 35; i++) {
+        // Continental Shelf & Coastlines (Cyan Turquoise gradient)
+        ctx.fillStyle = '#08486e';
+        for (let i = 0; i < 50; i++) {
           const x = Math.random() * canvas.width;
           const y = Math.random() * canvas.height;
-          const r = Math.random() * 120 + 30;
+          const r = Math.random() * 220 + 50;
           ctx.beginPath();
           ctx.arc(x, y, r, 0, Math.PI * 2);
           ctx.fill();
         }
 
-        // Swirling Clouds (bright white & cyan)
-        ctx.fillStyle = 'rgba(255, 255, 255, 0.45)';
-        for (let i = 0; i < 40; i++) {
+        // Inner Landmasses (Deep navy & emerald earth)
+        ctx.fillStyle = '#0c3559';
+        for (let i = 0; i < 60; i++) {
           const x = Math.random() * canvas.width;
           const y = Math.random() * canvas.height;
-          const w = Math.random() * 260 + 50;
-          const h = Math.random() * 40 + 10;
+          const r = Math.random() * 150 + 30;
           ctx.beginPath();
-          ctx.ellipse(x, y, w, h, Math.PI * 0.05, 0, Math.PI * 2);
+          ctx.arc(x, y, r, 0, Math.PI * 2);
           ctx.fill();
         }
 
-        // Cyber / Electrical city lights on night side
-        ctx.fillStyle = 'rgba(0, 243, 255, 0.8)';
-        for (let i = 0; i < 150; i++) {
-          const x = Math.random() * (canvas.width * 0.5);
+        // Craggy mountain ridges & detailed fractal lines
+        ctx.strokeStyle = '#1e293b';
+        ctx.lineWidth = 3;
+        for (let i = 0; i < 30; i++) {
+          ctx.beginPath();
+          let cx = Math.random() * canvas.width;
+          let cy = Math.random() * canvas.height;
+          ctx.moveTo(cx, cy);
+          for (let j = 0; j < 8; j++) {
+            cx += (Math.random() - 0.5) * 120;
+            cy += (Math.random() - 0.5) * 80;
+            ctx.lineTo(cx, cy);
+          }
+          ctx.stroke();
+        }
+
+        // High-altitude Swirling White Clouds
+        ctx.fillStyle = 'rgba(255, 255, 255, 0.55)';
+        for (let i = 0; i < 70; i++) {
+          const x = Math.random() * canvas.width;
           const y = Math.random() * canvas.height;
-          ctx.fillRect(x, y, 2, 2);
+          const w = Math.random() * 420 + 80;
+          const h = Math.random() * 65 + 15;
+          ctx.beginPath();
+          ctx.ellipse(x, y, w, h, (Math.random() - 0.5) * 0.4, 0, Math.PI * 2);
+          ctx.fill();
+        }
+
+        // Luminous Night City Lights / Cyber Grid on Dark Hemisphere
+        ctx.fillStyle = 'rgba(0, 243, 255, 0.9)';
+        for (let i = 0; i < 400; i++) {
+          const x = Math.random() * (canvas.width * 0.52);
+          const y = Math.random() * canvas.height;
+          const s = Math.random() * 2 + 1;
+          ctx.fillRect(x, y, s, s);
         }
       } else if (type === 'gold') {
-        // Golden / Amber gas giant (like ETHERON in reference image)
-        ctx.fillStyle = '#b45309';
+        // High-detail Golden Gas Giant with fine atmospheric bands
+        ctx.fillStyle = '#78350f';
         ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-        // Bands of gold, copper, amber
-        for (let y = 0; y < canvas.height; y += 12) {
-          ctx.fillStyle = y % 24 === 0 ? '#f59e0b' : '#d97706';
-          ctx.fillRect(0, y, canvas.width, 10);
+        for (let y = 0; y < canvas.height; y += 8) {
+          const hue = y % 32 < 16 ? '#f59e0b' : '#d97706';
+          ctx.fillStyle = hue;
+          ctx.fillRect(0, y, canvas.width, 7);
         }
-        // Swirls
-        ctx.fillStyle = 'rgba(254, 240, 138, 0.4)';
-        for (let i = 0; i < 20; i++) {
+
+        // Amber Storm Swirls
+        ctx.fillStyle = 'rgba(254, 240, 138, 0.45)';
+        for (let i = 0; i < 45; i++) {
+          const x = Math.random() * canvas.width;
+          const y = Math.random() * canvas.height;
           ctx.beginPath();
-          ctx.arc(Math.random() * canvas.width, Math.random() * canvas.height, 40, 0, Math.PI * 2);
+          ctx.ellipse(x, y, 70, 30, (Math.random() - 0.5) * 0.2, 0, Math.PI * 2);
           ctx.fill();
         }
       } else if (type === 'violet') {
-        // Deep purple / ultraviolet orb (like THERONIX in reference image)
-        ctx.fillStyle = '#3b0764';
+        // High-detail Ultraviolet striped planet
+        ctx.fillStyle = '#2e1065';
         ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-        for (let y = 0; y < canvas.height; y += 15) {
-          ctx.fillStyle = y % 30 === 0 ? '#7e22ce' : '#581c87';
-          ctx.fillRect(0, y, canvas.width, 12);
+        for (let y = 0; y < canvas.height; y += 10) {
+          ctx.fillStyle = y % 40 < 20 ? '#7e22ce' : '#581c87';
+          ctx.fillRect(0, y, canvas.width, 8);
         }
-        ctx.fillStyle = 'rgba(192, 132, 252, 0.35)';
-        for (let i = 0; i < 25; i++) {
+
+        ctx.fillStyle = 'rgba(216, 180, 254, 0.4)';
+        for (let i = 0; i < 50; i++) {
           ctx.beginPath();
-          ctx.arc(Math.random() * canvas.width, Math.random() * canvas.height, 35, 0, Math.PI * 2);
+          ctx.arc(Math.random() * canvas.width, Math.random() * canvas.height, 45, 0, Math.PI * 2);
           ctx.fill();
         }
       } else if (type === 'emerald') {
-        // Emerald / Mint planet
+        // Rich Mint & Jade Planet
         ctx.fillStyle = '#064e3b';
         ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-        for (let y = 0; y < canvas.height; y += 16) {
-          ctx.fillStyle = y % 32 === 0 ? '#059669' : '#047857';
-          ctx.fillRect(0, y, canvas.width, 14);
+        for (let y = 0; y < canvas.height; y += 10) {
+          ctx.fillStyle = y % 30 < 15 ? '#059669' : '#047857';
+          ctx.fillRect(0, y, canvas.width, 9);
         }
       } else {
-        // Coral / Pink
+        // Coral / Crimson Ruby Bands
         ctx.fillStyle = '#881337';
         ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-        for (let y = 0; y < canvas.height; y += 14) {
-          ctx.fillStyle = y % 28 === 0 ? '#e11d48' : '#be123c';
-          ctx.fillRect(0, y, canvas.width, 12);
+        for (let y = 0; y < canvas.height; y += 10) {
+          ctx.fillStyle = y % 30 < 15 ? '#e11d48' : '#be123c';
+          ctx.fillRect(0, y, canvas.width, 9);
         }
       }
 
-      const tex = new THREE.CanvasTexture(canvas);
-      tex.wrapS = THREE.RepeatWrapping;
-      return tex;
+      const texture = new THREE.CanvasTexture(canvas);
+      texture.wrapS = THREE.RepeatWrapping;
+      texture.wrapT = THREE.ClampToEdgeWrapping;
+      texture.anisotropy = maxAnisotropy;
+      texture.needsUpdate = true;
+      return texture;
     };
 
     // 6. Centerpiece Main Planet: "PHAM AN" (Orionis Style)
     const mainPlanetGroup = new THREE.Group();
-    // Offset slightly downwards to match the screenshot composition where planet fills lower center
     mainPlanetGroup.position.set(0, -3.2, 0);
     scene.add(mainPlanetGroup);
 
     const mainRadius = 6.4;
-    const mainGeo = new THREE.SphereGeometry(mainRadius, 64, 64);
-    const mainTex = createPlanetCanvasTexture('earth');
+    const mainGeo = new THREE.SphereGeometry(mainRadius, 128, 128); // 128x128 for ultra crisp sphere
+    const mainTex = createHighResPlanetTexture('earth');
     const mainMat = new THREE.MeshStandardMaterial({
       map: mainTex,
-      roughness: 0.6,
+      roughness: 0.55,
       metalness: 0.25,
       emissive: new THREE.Color(0x02162e),
-      emissiveIntensity: 0.7,
+      emissiveIntensity: 0.75,
     });
     const mainMesh = new THREE.Mesh(mainGeo, mainMat);
+    mainMesh.userData = { planetId: 'home' };
     mainPlanetGroup.add(mainMesh);
 
-    // Glowing Atmosphere Fresnel Halo (Custom Shader)
+    // Atmospheric Fresnel Glow Shader
     const atmosphereGeo = new THREE.SphereGeometry(mainRadius * 1.12, 64, 64);
     const atmosphereMat = new THREE.ShaderMaterial({
       vertexShader: `
@@ -263,9 +329,9 @@ export const SolarSystemCanvas: React.FC<SolarSystemCanvasProps> = ({
           vec3 viewDir = normalize(-vPosition);
           float fresnel = dot(viewDir, vNormal);
           fresnel = clamp(1.0 - fresnel, 0.0, 1.0);
-          float glow = pow(fresnel, 2.4);
-          vec3 cyanGlow = vec3(0.05, 0.75, 1.0);
-          gl_FragColor = vec4(cyanGlow, glow * 0.85);
+          float glow = pow(fresnel, 2.5);
+          vec3 cyanGlow = vec3(0.05, 0.82, 1.0);
+          gl_FragColor = vec4(cyanGlow, glow * 0.9);
         }
       `,
       blending: THREE.AdditiveBlending,
@@ -276,69 +342,31 @@ export const SolarSystemCanvas: React.FC<SolarSystemCanvasProps> = ({
     const atmosphereMesh = new THREE.Mesh(atmosphereGeo, atmosphereMat);
     mainPlanetGroup.add(atmosphereMesh);
 
-    // Subtle atmospheric dust motes around central planet
-    const auraCount = isMobile ? 120 : 280;
-    const auraGeo = new THREE.BufferGeometry();
-    const auraPos = new Float32Array(auraCount * 3);
-    for (let i = 0; i < auraCount; i++) {
-      const i3 = i * 3;
-      const d = THREE.MathUtils.randFloat(mainRadius * 1.05, mainRadius * 1.25);
-      const theta = Math.random() * Math.PI * 2;
-      const phi = Math.acos(THREE.MathUtils.randFloatSpread(2));
-      auraPos[i3] = d * Math.sin(phi) * Math.cos(theta);
-      auraPos[i3 + 1] = d * Math.sin(phi) * Math.sin(theta);
-      auraPos[i3 + 2] = d * Math.cos(phi);
-    }
-    auraGeo.setAttribute('position', new THREE.BufferAttribute(auraPos, 3));
-    const auraMat = new THREE.PointsMaterial({
-      size: 2.5,
-      map: particleTexture,
-      color: 0x38bdf8,
-      transparent: true,
-      opacity: 0.65,
-      blending: THREE.AdditiveBlending,
-      depthWrite: false,
-    });
-    const auraPoints = new THREE.Points(auraGeo, auraMat);
-    mainPlanetGroup.add(auraPoints);
-
-    // 7. Concentric Circular Orbit Lines (Exact match to reference image)
-    const orbitRadii = [8.8, 11.8, 14.8, 18.2, 22.0, 26.5];
+    // 7. Concentric Circular Orbit Lines
+    const orbitRadii = [8.8, 13.5, 18.5, 23.5, 28.5];
     const orbitGroup = new THREE.Group();
-    // Tilt slightly forward to look like the concentric perspective orbits in the image
     orbitGroup.position.set(0, -3.2, 0);
     orbitGroup.rotation.x = Math.PI * 0.08;
     scene.add(orbitGroup);
 
     orbitRadii.forEach((radius, idx) => {
-      const curve = new THREE.EllipseCurve(
-        0,
-        0,
-        radius,
-        radius * 0.96, // Slight elliptical eccentricity for perspective
-        0,
-        2 * Math.PI,
-        false,
-        0
-      );
+      const curve = new THREE.EllipseCurve(0, 0, radius, radius * 0.96, 0, 2 * Math.PI, false, 0);
       const points = curve.getPoints(128);
       const lineGeo = new THREE.BufferGeometry().setFromPoints(
         points.map((p) => new THREE.Vector3(p.x, 0, p.y))
       );
-
       const lineMat = new THREE.LineBasicMaterial({
         color: 0x0284c7,
         transparent: true,
-        opacity: idx === 1 || idx === 3 ? 0.35 : 0.18,
+        opacity: idx === 1 || idx === 2 ? 0.35 : 0.18,
         blending: THREE.AdditiveBlending,
       });
-
       const orbitLine = new THREE.LineLoop(lineGeo, lineMat);
       orbitGroup.add(orbitLine);
     });
 
-    // 8. Orbiting Planets & Interactive Mesh Setup
-    const orbitingPlanetMeshes: {
+    // 8. Orbiting Planets
+    interface OrbitingPlanetItem {
       id: string;
       group: THREE.Group;
       mesh: THREE.Mesh;
@@ -347,57 +375,53 @@ export const SolarSystemCanvas: React.FC<SolarSystemCanvasProps> = ({
       speed: number;
       angle: number;
       baseColor: string;
-    }[] = [];
+      size: number;
+    }
 
-    // Pre-assigned distinct orbital angles to match the screenshot composition
-    // - Gold planet (VMU) on Left (like Etheron)
-    // - Violet planet (Knowledge) on Right (like Theronix)
-    // - Emerald planet (Goals) on lower-left
-    // - Coral planet (Contact) on upper-right
+    const orbitingPlanetMeshes: OrbitingPlanetItem[] = [];
+
     const initialAngles: Record<string, number> = {
-      vmu: Math.PI * 0.95, // Left
-      knowledge: Math.PI * 0.08, // Right
-      goals: Math.PI * 0.65, // Lower Left
-      contact: Math.PI * 1.75, // Upper Right
+      vmu: Math.PI * 0.95,
+      knowledge: Math.PI * 0.08,
+      goals: Math.PI * 0.65,
+      contact: Math.PI * 1.75,
     };
 
     SOLAR_PLANETS.filter((p) => p.id !== 'home').forEach((planet) => {
       const pGroup = new THREE.Group();
       orbitGroup.add(pGroup);
 
-      const geo = new THREE.SphereGeometry(planet.size, 32, 32);
-      const tex = createPlanetCanvasTexture(planet.textureType);
+      const geo = new THREE.SphereGeometry(planet.size, 64, 64);
+      const tex = createHighResPlanetTexture(planet.textureType);
       const mat = new THREE.MeshStandardMaterial({
         map: tex,
         roughness: 0.5,
         metalness: 0.3,
         emissive: new THREE.Color(planet.color),
-        emissiveIntensity: 0.4,
+        emissiveIntensity: 0.45,
       });
       const mesh = new THREE.Mesh(geo, mat);
       mesh.userData = { planetId: planet.id };
       pGroup.add(mesh);
 
-      // Subtle atmospheric halo around orbiting planet
-      const glowGeo = new THREE.SphereGeometry(planet.size * 1.25, 24, 24);
+      const glowGeo = new THREE.SphereGeometry(planet.size * 1.25, 32, 32);
       const glowMat = new THREE.MeshBasicMaterial({
         color: new THREE.Color(planet.glowColor),
         transparent: true,
-        opacity: 0.22,
+        opacity: 0.25,
         blending: THREE.AdditiveBlending,
         side: THREE.BackSide,
       });
       const glowMesh = new THREE.Mesh(glowGeo, glowMat);
       pGroup.add(glowMesh);
 
-      // Planetary rings for violet planet (like Saturn/Theronix)
       if (planet.hasRings) {
-        const ringGeo = new THREE.RingGeometry(planet.size * 1.4, planet.size * 2.1, 32);
+        const ringGeo = new THREE.RingGeometry(planet.size * 1.4, planet.size * 2.1, 48);
         const ringMat = new THREE.MeshBasicMaterial({
           color: 0xc084fc,
           side: THREE.DoubleSide,
           transparent: true,
-          opacity: 0.35,
+          opacity: 0.4,
           blending: THREE.AdditiveBlending,
         });
         const ringMesh = new THREE.Mesh(ringGeo, ringMat);
@@ -414,30 +438,76 @@ export const SolarSystemCanvas: React.FC<SolarSystemCanvasProps> = ({
         speed: planet.orbitSpeed * 0.12,
         angle: initialAngles[planet.id] || Math.random() * Math.PI * 2,
         baseColor: planet.color,
+        size: planet.size,
       });
     });
 
-    // 9. Decorative Minor Celestial Orbs (matching small purple, orange, green moons in screenshot)
-    const decorativeMoons = [
-      { radius: 10.2, angle: Math.PI * 0.4, size: 0.5, color: 0xa855f7 }, // Purple moon near top
-      { radius: 13.0, angle: Math.PI * 1.85, size: 0.4, color: 0xef4444 }, // Small red orb
-      { radius: 16.5, angle: Math.PI * 1.95, size: 0.6, color: 0xf97316 }, // Orange orb
-      { radius: 11.2, angle: Math.PI * 0.72, size: 0.45, color: 0x10b981 }, // Green orb
-    ];
+    // 9. DYNAMIC SATELLITES WITH GLOWING TETHER BEAMS (Orbital Information Nodes)
+    const satelliteSystemGroup = new THREE.Group();
+    scene.add(satelliteSystemGroup);
 
-    decorativeMoons.forEach((m) => {
-      const mGeo = new THREE.SphereGeometry(m.size, 16, 16);
-      const mMat = new THREE.MeshStandardMaterial({
-        color: m.color,
-        emissive: m.color,
-        emissiveIntensity: 0.6,
+    interface SatelliteNode3D {
+      group: THREE.Group;
+      line: THREE.Line;
+      lineGeo: THREE.BufferGeometry;
+      angleOffset: number;
+      orbitDist: number;
+      speed: number;
+    }
+
+    const satelliteNodes3D: SatelliteNode3D[] = [];
+
+    // Create 4 3D satellite probes
+    for (let i = 0; i < 4; i++) {
+      const sGroup = new THREE.Group();
+      satelliteSystemGroup.add(sGroup);
+
+      // Probe Body (Octahedron crystal probe)
+      const pGeo = new THREE.OctahedronGeometry(0.35, 0);
+      const pMat = new THREE.MeshStandardMaterial({
+        color: 0x00f3ff,
+        emissive: 0x00f3ff,
+        emissiveIntensity: 0.9,
+        metalness: 0.9,
       });
-      const mMesh = new THREE.Mesh(mGeo, mMat);
-      mMesh.position.set(Math.cos(m.angle) * m.radius, 0, Math.sin(m.angle) * m.radius * 0.96);
-      orbitGroup.add(mMesh);
-    });
+      const pMesh = new THREE.Mesh(pGeo, pMat);
+      sGroup.add(pMesh);
 
-    // 10. Mouse Interaction & Parallax
+      // Solar Wings
+      const wingGeo = new THREE.BoxGeometry(1.4, 0.04, 0.35);
+      const wingMat = new THREE.MeshStandardMaterial({ color: 0x032b45, metalness: 0.8 });
+      const wingMesh = new THREE.Mesh(wingGeo, wingMat);
+      sGroup.add(wingMesh);
+
+      // Point Light
+      const pLight = new THREE.PointLight(0x00f3ff, 2.5, 8);
+      sGroup.add(pLight);
+
+      // Glowing Tether Line connecting to planet
+      const lineGeo = new THREE.BufferGeometry().setFromPoints([
+        new THREE.Vector3(0, 0, 0),
+        new THREE.Vector3(0, 0, 0),
+      ]);
+      const lineMat = new THREE.LineBasicMaterial({
+        color: 0x00f3ff,
+        transparent: true,
+        opacity: 0.45,
+        blending: THREE.AdditiveBlending,
+      });
+      const line = new THREE.Line(lineGeo, lineMat);
+      satelliteSystemGroup.add(line);
+
+      satelliteNodes3D.push({
+        group: sGroup,
+        line,
+        lineGeo,
+        angleOffset: (Math.PI * 2 * i) / 4,
+        orbitDist: 1.8,
+        speed: 0.6 + i * 0.1,
+      });
+    }
+
+    // 10. Mouse Interaction, Hover Raycasting & Planet Click
     const mouse = {
       x: 0,
       y: 0,
@@ -445,38 +515,88 @@ export const SolarSystemCanvas: React.FC<SolarSystemCanvasProps> = ({
       targetY: 0,
     };
 
+    const raycaster = new THREE.Raycaster();
+    const mouseVector = new THREE.Vector2();
+
     const handleMouseMove = (e: MouseEvent) => {
       mouse.targetX = (e.clientX / window.innerWidth) * 2 - 1;
       mouse.targetY = -(e.clientY / window.innerHeight) * 2 + 1;
+
+      mouseVector.x = mouse.targetX;
+      mouseVector.y = mouse.targetY;
+
+      raycaster.setFromCamera(mouseVector, camera);
+
+      // Check hover on central planet
+      const mainIntersect = raycaster.intersectObject(mainMesh);
+      if (mainIntersect.length > 0) {
+        document.body.style.cursor = 'pointer';
+        const tempV = new THREE.Vector3();
+        mainMesh.getWorldPosition(tempV);
+        tempV.project(camera);
+        const x = (tempV.x * 0.5 + 0.5) * window.innerWidth;
+        const y = (-(tempV.y * 0.5) + 0.5) * window.innerHeight;
+
+        onHoverRef.current({
+          id: 'home',
+          name: 'Phạm An (FamAnVMU)',
+          subtitle: 'Hành tinh Trung tâm // Sinh viên năm 3 CNTT ĐH Hàng Hải',
+          x,
+          y,
+        });
+        return;
+      }
+
+      // Check hover on orbiting planets
+      const interactiveMeshes = orbitingPlanetMeshes.map((p) => p.mesh);
+      const intersects = raycaster.intersectObjects(interactiveMeshes);
+
+      if (intersects.length > 0) {
+        document.body.style.cursor = 'pointer';
+        const pId = intersects[0].object.userData.planetId;
+        const planetData = SOLAR_PLANETS.find((p) => p.id === pId);
+
+        if (planetData) {
+          const tempV = new THREE.Vector3();
+          intersects[0].object.getWorldPosition(tempV);
+          tempV.project(camera);
+          const x = (tempV.x * 0.5 + 0.5) * window.innerWidth;
+          const y = (-(tempV.y * 0.5) + 0.5) * window.innerHeight;
+
+          onHoverRef.current({
+            id: planetData.id,
+            name: planetData.name,
+            subtitle: planetData.subtitle,
+            x,
+            y,
+          });
+          return;
+        }
+      }
+
+      // No hover
+      document.body.style.cursor = 'default';
+      onHoverRef.current(null);
     };
 
     window.addEventListener('mousemove', handleMouseMove, { passive: true });
 
-    // Raycasting for planet clicks
-    const raycaster = new THREE.Raycaster();
-    const mouseVector = new THREE.Vector2();
-
-    const handleClick = (e: MouseEvent) => {
-      mouseVector.x = (e.clientX / window.innerWidth) * 2 - 1;
-      mouseVector.y = -(e.clientY / window.innerHeight) * 2 + 1;
-
+    const handleClick = () => {
       raycaster.setFromCamera(mouseVector, camera);
 
-      // Check main central planet
       const mainIntersect = raycaster.intersectObject(mainMesh);
       if (mainIntersect.length > 0) {
         onSelectRef.current('home');
         return;
       }
 
-      // Check orbiting planets
       const interactiveMeshes = orbitingPlanetMeshes.map((p) => p.mesh);
       const intersects = raycaster.intersectObjects(interactiveMeshes);
 
       if (intersects.length > 0) {
-        const clickedPlanetId = intersects[0].object.userData.planetId;
-        if (clickedPlanetId) {
-          onSelectRef.current(clickedPlanetId);
+        const pId = intersects[0].object.userData.planetId;
+        if (pId) {
+          onSelectRef.current(pId);
         }
       }
     };
@@ -492,7 +612,11 @@ export const SolarSystemCanvas: React.FC<SolarSystemCanvasProps> = ({
 
     window.addEventListener('resize', handleResize);
 
-    // 11. Animation Loop
+    // 11. Camera Flight Interpolation Variables
+    const currentCameraPos = new THREE.Vector3().copy(camera.position);
+    const currentLookTarget = new THREE.Vector3(0, -1.8, 0);
+
+    // 12. Animation Loop
     let animationFrameId: number;
     let clock = new THREE.Clock();
 
@@ -502,22 +626,15 @@ export const SolarSystemCanvas: React.FC<SolarSystemCanvasProps> = ({
       const delta = clock.getDelta();
       const elapsed = clock.getElapsedTime();
 
-      // Smooth mouse damping
+      // Damped mouse movement
       mouse.x += (mouse.targetX - mouse.x) * 0.05;
       mouse.y += (mouse.targetY - mouse.y) * 0.05;
 
-      // Parallax effect on camera
-      camera.position.x = mouse.x * 1.2;
-      camera.position.y = 4.5 + mouse.y * 0.8;
-      camera.lookAt(0, -1.8, 0);
-
       // Rotate Main Planet slowly
-      mainMesh.rotation.y += delta * 0.07;
-      auraPoints.rotation.y += delta * 0.12;
+      mainMesh.rotation.y += delta * 0.08;
 
-      // Update positions of orbiting planets along their tracks
+      // Update positions of orbiting planets
       orbitingPlanetMeshes.forEach((p) => {
-        // Slow continuous orbit
         p.angle += delta * p.speed;
 
         const x = Math.cos(p.angle) * p.radius;
@@ -526,21 +643,111 @@ export const SolarSystemCanvas: React.FC<SolarSystemCanvasProps> = ({
 
         p.mesh.rotation.y += delta * 0.2;
 
-        // Highlight if active
-        const isActive = activePlanetRef.current === p.id;
-        p.glowMesh.scale.setScalar(isActive ? 1.6 : 1.25);
-        (p.glowMesh.material as THREE.MeshBasicMaterial).opacity = isActive ? 0.55 : 0.22;
+        const isCurrentActive = activePlanetRef.current === p.id;
+        p.glowMesh.scale.setScalar(isCurrentActive ? 1.6 : 1.25);
+        (p.glowMesh.material as THREE.MeshBasicMaterial).opacity = isCurrentActive ? 0.6 : 0.25;
       });
 
-      // Subtle Starfield rotation
-      starField.rotation.y = elapsed * 0.003;
+      // 13. Determine Active Planet World Position for Camera Flight
+      const activeId = activePlanetRef.current;
+      const targetCameraPos = new THREE.Vector3();
+      const targetLookTarget = new THREE.Vector3();
+
+      let activeWorldPos = new THREE.Vector3();
+      let activeSize = mainRadius;
+      let activeColor = 0x00f3ff;
+
+      if (isOverviewRef.current) {
+        // Return to Full Solar System Overview vista (matching screenshot)
+        targetCameraPos.set(mouse.x * 1.5, 4.5 + mouse.y * 1.0, 26);
+        targetLookTarget.set(0, -1.8, 0);
+      } else if (activeId === 'home') {
+        mainMesh.getWorldPosition(activeWorldPos);
+        targetLookTarget.copy(activeWorldPos);
+        // Move camera closer so central planet is majestic & detailed
+        targetCameraPos.set(mouse.x * 1.0, activeWorldPos.y + 1.2 + mouse.y * 0.6, 15.5);
+      } else {
+        const found = orbitingPlanetMeshes.find((p) => p.id === activeId);
+        if (found) {
+          found.mesh.getWorldPosition(activeWorldPos);
+          activeSize = found.size;
+          activeColor = new THREE.Color(found.baseColor).getHex();
+
+          targetLookTarget.copy(activeWorldPos);
+          // Fly directly down close to that orbiting planet
+          targetCameraPos.set(
+            activeWorldPos.x + mouse.x * 0.6,
+            activeWorldPos.y + activeSize * 0.8 + mouse.y * 0.4,
+            activeWorldPos.z + activeSize * 3.4
+          );
+        }
+      }
+
+      // Smooth camera glide interpolation (lerp)
+      currentCameraPos.lerp(targetCameraPos, 0.045);
+      currentLookTarget.lerp(targetLookTarget, 0.045);
+
+      camera.position.copy(currentCameraPos);
+      camera.lookAt(currentLookTarget);
+
+      // 14. Update Orbiting Satellites Around the Focused Planet
+      const activePlanetData = SOLAR_PLANETS.find((p) => p.id === activeId) || SOLAR_PLANETS[0];
+      const satDist = activeSize * 1.6 + 1.2;
+
+      const screenPositions: SatelliteScreenPosition[] = [];
+
+      satelliteNodes3D.forEach((sat, sIdx) => {
+        const angle = sat.angleOffset + elapsed * sat.speed;
+        const satX = activeWorldPos.x + Math.cos(angle) * satDist;
+        const satY = activeWorldPos.y + Math.sin(angle * 1.2) * (activeSize * 0.4);
+        const satZ = activeWorldPos.z + Math.sin(angle) * satDist;
+
+        sat.group.position.set(satX, satY, satZ);
+        sat.group.rotation.y = elapsed * 0.8;
+
+        // Update connecting beam line to planet
+        const positions = sat.lineGeo.attributes.position.array as Float32Array;
+        positions[0] = activeWorldPos.x;
+        positions[1] = activeWorldPos.y;
+        positions[2] = activeWorldPos.z;
+        positions[3] = satX;
+        positions[4] = satY;
+        positions[5] = satZ;
+        sat.lineGeo.attributes.position.needsUpdate = true;
+
+        (sat.line.material as THREE.LineBasicMaterial).color.setHex(activeColor);
+
+        // Project 3D satellite position to 2D viewport coordinates
+        const tempV = new THREE.Vector3(satX, satY, satZ);
+        tempV.project(camera);
+
+        // Only include if in front of camera
+        if (tempV.z < 1) {
+          const sx = (tempV.x * 0.5 + 0.5) * window.innerWidth;
+          const sy = (-(tempV.y * 0.5) + 0.5) * window.innerHeight;
+
+          if (activePlanetData.satellites && activePlanetData.satellites[sIdx]) {
+            screenPositions.push({
+              id: activePlanetData.satellites[sIdx].id,
+              x: sx,
+              y: sy,
+              satellite: activePlanetData.satellites[sIdx],
+            });
+          }
+        }
+      });
+
+      onUpdateSatellitesRef.current(screenPositions);
+
+      // Subtle starfield rotation
+      starField.rotation.y = elapsed * 0.002;
 
       renderer.render(scene, camera);
     };
 
     animate();
 
-    // 12. Cleanup
+    // 15. Cleanup
     return () => {
       cancelAnimationFrame(animationFrameId);
       window.removeEventListener('mousemove', handleMouseMove);
@@ -553,8 +760,6 @@ export const SolarSystemCanvas: React.FC<SolarSystemCanvasProps> = ({
       mainMat.dispose();
       atmosphereGeo.dispose();
       atmosphereMat.dispose();
-      auraGeo.dispose();
-      auraMat.dispose();
       starGeo.dispose();
       starMat.dispose();
 
@@ -568,12 +773,12 @@ export const SolarSystemCanvas: React.FC<SolarSystemCanvasProps> = ({
   return (
     <div
       ref={containerRef}
-      className="fixed inset-0 z-0 overflow-hidden cursor-grab active:cursor-grabbing select-none"
+      className="fixed inset-0 z-0 overflow-hidden select-none"
       style={{
         background: 'radial-gradient(ellipse at 50% 65%, #071e3d 0%, #030d22 45%, #020612 100%)',
       }}
-      title="Bấm vào các hành tinh để xem thông tin chi tiết"
-      aria-label="Không gian hệ hành tinh tương tác"
+      title="Bấm vào bất kỳ hành tinh nào để phóng góc nhìn đến hành tinh đó"
+      aria-label="Không gian 3D tương tác hệ hành tinh"
     />
   );
 };

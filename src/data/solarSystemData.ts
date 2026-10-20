@@ -3,6 +3,16 @@ export interface PlanetTelemetry {
   value: string;
 }
 
+export interface PlanetSatellite {
+  id: string;
+  title: string;
+  subtitle: string;
+  detail: string;
+  iconType: 'vmu' | 'code' | 'study' | 'goal' | 'facebook' | 'discord' | 'email' | 'github' | 'info';
+  link?: string;
+  action?: 'link' | 'copy';
+}
+
 export interface PlanetData {
   id: string;
   name: string;
@@ -20,6 +30,7 @@ export interface PlanetData {
   orbitSpeed: number;
   textureType: 'earth' | 'gold' | 'violet' | 'emerald' | 'coral';
   hasRings?: boolean;
+  satellites: PlanetSatellite[];
 }
 
 export const SOLAR_PLANETS: PlanetData[] = [
@@ -32,7 +43,7 @@ export const SOLAR_PLANETS: PlanetData[] = [
     category: 'core',
     color: '#00d2ff',
     glowColor: '#00f3ff',
-    size: 5.8,
+    size: 6.4,
     orbitRadius: 0,
     orbitSpeed: 0,
     textureType: 'earth',
@@ -50,6 +61,36 @@ export const SOLAR_PLANETS: PlanetData[] = [
       'Đang tích lũy kiến thức cơ sở ngành và rèn luyện tư duy lập trình',
       'Thẳng thắn, trung thực, có tinh thần cầu thị và khao khát được học hỏi',
     ],
+    satellites: [
+      {
+        id: 'sat-home-vmu',
+        title: 'Khoa CNTT - VMU',
+        subtitle: 'Sinh viên chính quy',
+        detail: 'Đang theo học chương trình đào tạo Kỹ sư Công nghệ Thông tin tại Trường ĐH Hàng hải Việt Nam.',
+        iconType: 'vmu',
+      },
+      {
+        id: 'sat-home-status',
+        title: 'Đầu Năm 3 (K64)',
+        subtitle: 'Giai đoạn học tập',
+        detail: 'Đã hoàn thành các môn đại cương & cơ sở ngành; đang bắt đầu học các môn chuyên ngành sâu.',
+        iconType: 'study',
+      },
+      {
+        id: 'sat-home-location',
+        title: 'Hải Phòng, VN',
+        subtitle: 'Địa bàn học tập',
+        detail: 'Học tập và sinh sống tại thành phố Cảng Hải Phòng - trung tâm kinh tế biển năng động.',
+        iconType: 'info',
+      },
+      {
+        id: 'sat-home-attitude',
+        title: 'Tinh Thần Cầu Thị',
+        subtitle: 'Thái độ bản thân',
+        detail: 'Trung thực về năng lực, không tự nhận dự án do AI tạo là kinh nghiệm cá nhân, sẵn sàng học từ đầu.',
+        iconType: 'goal',
+      },
+    ],
   },
   {
     id: 'vmu',
@@ -60,8 +101,8 @@ export const SOLAR_PLANETS: PlanetData[] = [
     category: 'education',
     color: '#f59e0b',
     glowColor: '#fbbf24',
-    size: 1.5,
-    orbitRadius: 10.5,
+    size: 2.2,
+    orbitRadius: 13.5,
     orbitSpeed: 0.18,
     textureType: 'gold',
     telemetry: [
@@ -78,6 +119,36 @@ export const SOLAR_PLANETS: PlanetData[] = [
       'Đang bước vào giai đoạn môn học chuyên ngành của năm thứ 3',
       'Tham gia đầy đủ các học phần lý thuyết và bài tập thực hành trên lớp',
     ],
+    satellites: [
+      {
+        id: 'sat-vmu-history',
+        title: 'Mái Trường Đại Dương',
+        subtitle: 'Thành lập 1956',
+        detail: 'Trường đại học trọng điểm quốc gia, trung tâm đào tạo nguồn nhân lực chất lượng cao.',
+        iconType: 'vmu',
+      },
+      {
+        id: 'sat-vmu-faculty',
+        title: 'Khoa CNTT - VMU',
+        subtitle: 'Đơn vị đào tạo',
+        detail: 'Đào tạo kỹ sư có kiến thức toàn diện về phần mềm, hệ thống thông tin và mạng máy tính.',
+        iconType: 'study',
+      },
+      {
+        id: 'sat-vmu-spirit',
+        title: 'Kỷ Luật Hàng Hải',
+        subtitle: 'Môi trường rèn luyện',
+        detail: 'Tác phong chuẩn chỉ, tinh thần vượt khó, tính đồng đội và trách nhiệm cao.',
+        iconType: 'info',
+      },
+      {
+        id: 'sat-vmu-campus',
+        title: '484 Lạch Tray',
+        subtitle: 'Trụ sở chính',
+        detail: 'Khuôn viên đào tạo chính tại quận Ngô Quyền, thành phố Hải Phòng.',
+        iconType: 'vmu',
+      },
+    ],
   },
   {
     id: 'knowledge',
@@ -88,8 +159,8 @@ export const SOLAR_PLANETS: PlanetData[] = [
     category: 'knowledge',
     color: '#a855f7',
     glowColor: '#c084fc',
-    size: 1.7,
-    orbitRadius: 15.5,
+    size: 2.4,
+    orbitRadius: 18.5,
     orbitSpeed: 0.12,
     textureType: 'violet',
     hasRings: true,
@@ -107,6 +178,36 @@ export const SOLAR_PLANETS: PlanetData[] = [
       'Biết viết câu lệnh truy vấn dữ liệu SQL và thiết kế bảng CSDL',
       'Hiểu quy trình vận hành của mạng máy tính và hệ điều hành',
     ],
+    satellites: [
+      {
+        id: 'sat-know-cpp',
+        title: 'Lập Trình C / C++',
+        subtitle: 'Môn học đại cương',
+        detail: 'Đã hoàn thành các học phần Tin học đại cương & Kỹ thuật lập trình C/C++.',
+        iconType: 'code',
+      },
+      {
+        id: 'sat-know-oop',
+        title: 'Lập Trình OOP',
+        subtitle: 'Tư duy đối tượng',
+        detail: 'Hiểu các nguyên lý Đóng gói, Kế thừa, Đa hình và Trừu tượng hóa trong lập trình.',
+        iconType: 'code',
+      },
+      {
+        id: 'sat-know-db',
+        title: 'Cơ Sở Dữ Liệu SQL',
+        subtitle: 'Quản trị dữ liệu',
+        detail: 'Thiết kế mô hình quan hệ ERD, chuẩn hóa bảng và truy vấn dữ liệu với MySQL.',
+        iconType: 'study',
+      },
+      {
+        id: 'sat-know-web',
+        title: 'Tự Học Web Cơ Bản',
+        subtitle: 'HTML, CSS, JS, React',
+        detail: 'Chủ động tìm hiểu kiến trúc Web hiện đại, cách hoạt động của DOM và giao diện cơ bản.',
+        iconType: 'code',
+      },
+    ],
   },
   {
     id: 'goals',
@@ -117,8 +218,8 @@ export const SOLAR_PLANETS: PlanetData[] = [
     category: 'goals',
     color: '#10b981',
     glowColor: '#34d399',
-    size: 1.4,
-    orbitRadius: 20.5,
+    size: 2.0,
+    orbitRadius: 23.5,
     orbitSpeed: 0.08,
     textureType: 'emerald',
     telemetry: [
@@ -135,6 +236,36 @@ export const SOLAR_PLANETS: PlanetData[] = [
       'Không ngại việc khó, luôn nỗ lực hoàn thành nhiệm vụ được giao',
       'Mong muốn được đóng góp sức trẻ và phát triển bản thân từng ngày',
     ],
+    satellites: [
+      {
+        id: 'sat-goal-intern',
+        title: 'Tìm Vị Trí Thực Tập',
+        subtitle: 'Mục tiêu số 1',
+        detail: 'Tìm cơ hội gia nhập một đội ngũ công nghệ để cọ xát với môi trường làm việc thực tế.',
+        iconType: 'goal',
+      },
+      {
+        id: 'sat-goal-learn',
+        title: 'Học Quy Trình Chuẩn',
+        subtitle: 'Tích lũy kinh nghiệm',
+        detail: 'Học cách làm việc nhóm với Git, quản lý task (Jira/Trello) và viết code sạch.',
+        iconType: 'study',
+      },
+      {
+        id: 'sat-goal-attitude',
+        title: 'Chăm Chỉ & Cầu Thị',
+        subtitle: 'Cam kết thái độ',
+        detail: 'Lắng nghe phản hồi từ anh chị mentor, không giấu dốt và sẵn sàng làm từ việc nhỏ nhất.',
+        iconType: 'goal',
+      },
+      {
+        id: 'sat-goal-grad',
+        title: 'Tốt Nghiệp Kỹ Sư',
+        subtitle: 'Chặng đường dài',
+        detail: 'Hoàn thành xuất sắc đồ án tốt nghiệp tại Trường ĐH Hàng hải Việt Nam.',
+        iconType: 'vmu',
+      },
+    ],
   },
   {
     id: 'contact',
@@ -145,8 +276,8 @@ export const SOLAR_PLANETS: PlanetData[] = [
     category: 'contact',
     color: '#f43f5e',
     glowColor: '#fb7185',
-    size: 1.3,
-    orbitRadius: 25.5,
+    size: 1.8,
+    orbitRadius: 28.5,
     orbitSpeed: 0.05,
     textureType: 'coral',
     telemetry: [
@@ -163,6 +294,44 @@ export const SOLAR_PLANETS: PlanetData[] = [
       'Discord ID: FamAnVMU (846953344903282758)',
       'Email: phama6372@gmail.com',
       'GitHub: github.com/FamAnVMU',
+    ],
+    satellites: [
+      {
+        id: 'sat-conn-fb',
+        title: 'Facebook Cá Nhân',
+        subtitle: 'pham.an.123114',
+        detail: 'Kết nối mạng xã hội và theo dõi các chia sẻ học tập thường nhật.',
+        iconType: 'facebook',
+        link: 'https://www.facebook.com/pham.an.123114',
+        action: 'link',
+      },
+      {
+        id: 'sat-conn-dc',
+        title: 'Discord Profile',
+        subtitle: 'FamAnVMU (846953344903282758)',
+        detail: 'Trò chuyện công nghệ và thảo luận lập trình qua máy chủ Discord.',
+        iconType: 'discord',
+        link: 'https://discord.com/users/846953344903282758',
+        action: 'link',
+      },
+      {
+        id: 'sat-conn-mail',
+        title: 'Email Trực Tiếp',
+        subtitle: 'phama6372@gmail.com',
+        detail: 'Hòm thư liên hệ trao đổi công việc, cơ hội thực tập và học tập.',
+        iconType: 'email',
+        link: 'mailto:phama6372@gmail.com',
+        action: 'copy',
+      },
+      {
+        id: 'sat-conn-git',
+        title: 'GitHub Repository',
+        subtitle: 'github.com/FamAnVMU',
+        detail: 'Nơi lưu trữ các bài tập thực hành và mã nguồn của Phạm An.',
+        iconType: 'github',
+        link: 'https://github.com/FamAnVMU',
+        action: 'link',
+      },
     ],
   },
 ];
