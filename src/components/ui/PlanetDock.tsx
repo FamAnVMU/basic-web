@@ -16,14 +16,14 @@ export const PlanetDock: React.FC<PlanetDockProps> = ({
 
   const handleClick = (id: string) => {
     soundManager.playClick();
-    onSelectPlanet(id, true); // Opens planet info directly!
+    onSelectPlanet(id, false); // Chuyển góc nhìn sang hành tinh, không mở modal thông tin
   };
 
   return (
     <div className="fixed bottom-5 inset-x-0 z-30 flex flex-col items-center gap-1.5 px-4 select-none pointer-events-none">
       {/* Scroll Navigation Hint */}
       <div className="text-[9px] font-mono-code text-cyan-400/80 tracking-widest uppercase">
-        CUỘN CHUỘT ĐỂ CHUYỂN DẦN HÀNH TINH • BẤM ĐỂ XEM THÔNG TIN
+        CUỘN CHUỘT ĐỂ CHUYỂN DẦN HÀNH TINH • BẤM ĐỂ CHUYỂN NHANH
       </div>
 
       <div className="pointer-events-auto relative p-1.5 sm:p-2 rounded-2xl bg-[#020612]/85 backdrop-blur-xl border border-cyan-500/25 flex items-center gap-1 sm:gap-2 shadow-[0_8px_32px_rgba(0,0,0,0.7)] overflow-hidden">

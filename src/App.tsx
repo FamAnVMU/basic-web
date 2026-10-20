@@ -79,7 +79,7 @@ export const App: React.FC = () => {
       {/* Top Header & Telemetry Data Row (matching reference screenshot) */}
       <SolarHeader
         activePlanet={activePlanet}
-        onSelectPlanet={(id) => handleSelectPlanet(id, true)}
+        onSelectPlanet={(id) => handleSelectPlanet(id, false)}
         isMuted={isMuted}
         onToggleSound={handleToggleSound}
         onOpenDetails={() => setIsDetailsOpen(true)}
@@ -87,16 +87,18 @@ export const App: React.FC = () => {
         onToggleOverview={handleToggleOverview}
       />
 
-      {/* Floating Orbital Labels (ETHERON / THERONIX style) */}
-      <OrbitPlanetBadges
-        activePlanetId={activePlanetId}
-        onSelectPlanet={(id) => handleSelectPlanet(id, true)}
-      />
+      {/* Dynamic Active Planet HUD Badge (Updates automatically with current planet) */}
+      {!isOverview && (
+        <OrbitPlanetBadges
+          activePlanetId={activePlanetId}
+          onSelectPlanet={(id, openDetails) => handleSelectPlanet(id, openDetails ?? true)}
+        />
+      )}
 
       {/* Bottom Floating Planet Selector Dock */}
       <PlanetDock
         activePlanetId={activePlanetId}
-        onSelectPlanet={(id) => handleSelectPlanet(id, true)}
+        onSelectPlanet={(id) => handleSelectPlanet(id, false)}
       />
 
       {/* Detailed Holographic Dossier Modal (Directly triggered when clicking any planet) */}
