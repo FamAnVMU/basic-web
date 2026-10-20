@@ -78,6 +78,8 @@ export const SolarSystemCanvas: React.FC<SolarSystemCanvasProps> = ({
   const lastNotifiedPlanetId = useRef<string>(activePlanetId);
   const isProgrammaticNavRef = useRef<boolean>(false);
 
+  const triggerDirectWarpRef = useRef<((targetIdx: number, targetId: string) => void) | null>(null);
+
   // Sync target progress whenever navTarget changes from UI clicks (dock / nav / badges / meshes)
   useEffect(() => {
     if (!navTarget) return;
@@ -87,9 +89,12 @@ export const SolarSystemCanvas: React.FC<SolarSystemCanvasProps> = ({
       lastNotifiedPlanetId.current = navTarget.id;
       activePlanetRef.current = navTarget.id;
 
-      // Jump progress directly to destination so camera flies straight there without traversing intermediate planets!
-      currentProgressRef.current = idx;
-      targetProgressRef.current = idx;
+      if (triggerDirectWarpRef.current) {
+        triggerDirectWarpRef.current(idx, navTarget.id);
+      } else {
+        currentProgressRef.current = idx;
+        targetProgressRef.current = idx;
+      }
     }
   }, [navTarget]);
 
@@ -640,6 +645,7 @@ export const SolarSystemCanvas: React.FC<SolarSystemCanvasProps> = ({
 
       // Taking over manual control
       isProgrammaticNavRef.current = false;
+      directWarp.active = false;
 
       // If user is currently in overview, scrolling automatically exits overview to start interplanetary navigation
       if (isOverviewRef.current) {
@@ -668,6 +674,7 @@ export const SolarSystemCanvas: React.FC<SolarSystemCanvasProps> = ({
     let touchStartY = 0;
     const handleTouchStart = (e: TouchEvent) => {
       if (isDetailsOpenRef.current) return;
+      directWarp.active = false;
       touchStartY = e.touches[0].clientY;
     };
 
@@ -675,6 +682,7 @@ export const SolarSystemCanvas: React.FC<SolarSystemCanvasProps> = ({
       if (isDetailsOpenRef.current) return;
 
       isProgrammaticNavRef.current = false;
+      directWarp.active = false;
 
       if (isOverviewRef.current) {
         isOverviewRef.current = false;
@@ -718,12 +726,9 @@ export const SolarSystemCanvas: React.FC<SolarSystemCanvasProps> = ({
           onSelectRef.current('home', true);
         } else {
           // Currently at another planet -> 1st click flies directly to home planet without opening modal
-          currentProgressRef.current = 0;
-          targetProgressRef.current = 0;
-          activePlanetRef.current = 'home';
-          lastNotifiedPlanetId.current = 'home';
           isOverviewRef.current = false;
           onExitOverviewRef.current?.();
+          triggerDirectWarp(0, 'home');
           onSelectRef.current('home', false);
         }
         return;
@@ -744,12 +749,9 @@ export const SolarSystemCanvas: React.FC<SolarSystemCanvasProps> = ({
               onSelectRef.current(pId, true);
             } else {
               // Currently at another planet -> 1st click flies directly to this planet without opening modal
-              currentProgressRef.current = idx;
-              targetProgressRef.current = idx;
-              activePlanetRef.current = pId;
-              lastNotifiedPlanetId.current = pId;
               isOverviewRef.current = false;
               onExitOverviewRef.current?.();
+              triggerDirectWarp(idx, pId);
               onSelectRef.current(pId, false);
             }
           }
@@ -829,6 +831,33 @@ export const SolarSystemCanvas: React.FC<SolarSystemCanvasProps> = ({
     const currentCameraPos = new THREE.Vector3().copy(camera.position);
     const currentLookTarget = new THREE.Vector3(0, -4.8, 0);
 
+    // Direct Warp Flight State (Deliberate, slow and buttery smooth transition)
+    const directWarp = {
+      active: false,
+      startTime: 0,
+      duration: 1400, // 1.4s for majestic cosmic flight
+      startCamPos: new THREE.Vector3(),
+      startLookTarget: new THREE.Vector3(),
+      destIdx: 0,
+      destId: 'home',
+    };
+
+    const triggerDirectWarp = (destIdx: number, destId: string) => {
+      directWarp.active = true;
+      directWarp.startTime = performance.now();
+      directWarp.duration = 1400;
+      directWarp.startCamPos.copy(camera.position);
+      directWarp.startLookTarget.copy(currentLookTarget);
+      directWarp.destIdx = destIdx;
+      directWarp.destId = destId;
+      activePlanetRef.current = destId;
+      lastNotifiedPlanetId.current = destId;
+      currentProgressRef.current = destIdx;
+      targetProgressRef.current = destIdx;
+    };
+
+    triggerDirectWarpRef.current = triggerDirectWarp;
+
     // 12. Animation Loop
     let animationFrameId: number;
     let clock = new THREE.Clock();
@@ -896,38 +925,67 @@ export const SolarSystemCanvas: React.FC<SolarSystemCanvasProps> = ({
         }
       }
 
-      // Continuous interpolation between adjacent planets (with cyclic wrap to index 0)
-      const indexA = Math.floor(progress) % SOLAR_PLANETS.length;
-      const indexB = (indexA + 1) % SOLAR_PLANETS.length;
-      const fraction = progress - Math.floor(progress);
-      // Smooth cubic curve
-      const ease = fraction * fraction * (3 - 2 * fraction);
+      if (directWarp.active) {
+        const elapsedWarp = performance.now() - directWarp.startTime;
+        const rawT = Math.min(1, elapsedWarp / directWarp.duration);
 
-      const viewA = getPlanetCameraView(indexA);
-      const viewB = getPlanetCameraView(indexB);
+        // Smootherstep S-curve easing (extremely gentle acceleration and deceleration)
+        const ease = rawT * rawT * rawT * (rawT * (rawT * 6 - 15) + 10);
 
-      const targetCameraPos = new THREE.Vector3();
-      const targetLookTarget = new THREE.Vector3();
+        const destView = getPlanetCameraView(directWarp.destIdx);
 
-      if (isOverviewRef.current) {
-        targetCameraPos.set(mouse.x * 1.5, 4.0 + mouse.y * 0.8, 40.0);
-        targetLookTarget.set(0, -4.5, 0);
+        // Direct interpolation between starting viewpoint and destination viewpoint
+        currentCameraPos.lerpVectors(directWarp.startCamPos, destView.camPos, ease);
+        currentLookTarget.lerpVectors(directWarp.startLookTarget, destView.lookTarget, ease);
+
+        // Majestic cosmic flight arc lift (lifts gently up & out into deep space, then descends)
+        const flightArc = Math.sin(rawT * Math.PI) * 3.5;
+        currentCameraPos.y += flightArc * 0.35;
+        currentCameraPos.z += flightArc * 0.55;
+
+        camera.position.copy(currentCameraPos);
+        camera.lookAt(currentLookTarget);
+
+        if (rawT >= 1) {
+          directWarp.active = false;
+          currentProgressRef.current = directWarp.destIdx;
+          targetProgressRef.current = directWarp.destIdx;
+          isProgrammaticNavRef.current = false;
+        }
       } else {
-        targetCameraPos.lerpVectors(viewA.camPos, viewB.camPos, ease);
-        targetLookTarget.lerpVectors(viewA.lookTarget, viewB.lookTarget, ease);
+        // Continuous interpolation between adjacent planets (with cyclic wrap to index 0)
+        const indexA = Math.floor(progress) % SOLAR_PLANETS.length;
+        const indexB = (indexA + 1) % SOLAR_PLANETS.length;
+        const fraction = progress - Math.floor(progress);
+        // Smooth cubic curve
+        const ease = fraction * fraction * (3 - 2 * fraction);
 
-        // Cosmic flight arc lift between planets
-        const arcLift = Math.sin(fraction * Math.PI) * 2.8;
-        targetCameraPos.y += arcLift * 0.35;
-        targetCameraPos.z += arcLift * 0.55;
+        const viewA = getPlanetCameraView(indexA);
+        const viewB = getPlanetCameraView(indexB);
+
+        const targetCameraPos = new THREE.Vector3();
+        const targetLookTarget = new THREE.Vector3();
+
+        if (isOverviewRef.current) {
+          targetCameraPos.set(mouse.x * 1.5, 4.0 + mouse.y * 0.8, 40.0);
+          targetLookTarget.set(0, -4.5, 0);
+        } else {
+          targetCameraPos.lerpVectors(viewA.camPos, viewB.camPos, ease);
+          targetLookTarget.lerpVectors(viewA.lookTarget, viewB.lookTarget, ease);
+
+          // Cosmic flight arc lift between planets
+          const arcLift = Math.sin(fraction * Math.PI) * 2.8;
+          targetCameraPos.y += arcLift * 0.35;
+          targetCameraPos.z += arcLift * 0.55;
+        }
+
+        // Smooth camera interpolation
+        currentCameraPos.lerp(targetCameraPos, 0.07);
+        currentLookTarget.lerp(targetLookTarget, 0.07);
+
+        camera.position.copy(currentCameraPos);
+        camera.lookAt(currentLookTarget);
       }
-
-      // Smooth camera interpolation
-      currentCameraPos.lerp(targetCameraPos, 0.07);
-      currentLookTarget.lerp(targetLookTarget, 0.07);
-
-      camera.position.copy(currentCameraPos);
-      camera.lookAt(currentLookTarget);
 
       // 14. Update Orbiting Satellites Around the Focused Planet
       const activePlanetData = SOLAR_PLANETS[nearestIdx] || SOLAR_PLANETS[0];
@@ -1000,6 +1058,7 @@ export const SolarSystemCanvas: React.FC<SolarSystemCanvasProps> = ({
       window.removeEventListener('touchmove', handleTouchMove);
       renderer.domElement.removeEventListener('click', handleClick);
       window.removeEventListener('resize', handleResize);
+      triggerDirectWarpRef.current = null;
 
       particleTexture.dispose();
       mainTex.dispose();

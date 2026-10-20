@@ -118,24 +118,24 @@ export const SolarHeader: React.FC<SolarHeaderProps> = ({
         </div>
       </div>
 
-      {/* Hero Display Title: Large Spaced Uppercase (like ORIONIS in screenshot) */}
-      <div className="text-center mt-4 sm:mt-6 transition-all duration-500">
-        <h1 className="font-orbitron font-medium text-2xl sm:text-4xl lg:text-5xl text-white tracking-[0.35em] sm:tracking-[0.5em] uppercase text-cyan-glow-subtle">
+      {/* Hero Display Title: Large Spaced Uppercase (like ORIONIS in screenshot, slightly scaled down) */}
+      <div className="text-center mt-2.5 sm:mt-3.5 transition-all duration-500">
+        <h1 className="font-orbitron font-medium text-lg sm:text-2xl lg:text-3xl text-white tracking-[0.25em] sm:tracking-[0.4em] uppercase text-cyan-glow-subtle">
           {activePlanet.displayTitle}
         </h1>
-        <p className="text-[10px] sm:text-xs font-mono-code text-cyan-400/90 tracking-widest uppercase mt-1">
+        <p className="text-[9px] sm:text-[10px] font-mono-code text-cyan-400/90 tracking-widest uppercase mt-0.5">
           {activePlanet.subtitle}
         </p>
       </div>
 
-      {/* Horizontal Telemetry Stats Row (Exact layout from reference image) */}
-      <div className="mt-3.5 sm:mt-4 flex flex-wrap items-center justify-center gap-x-6 sm:gap-x-12 gap-y-2 text-center">
+      {/* Horizontal Telemetry Stats Row (Scaled down for sleeker layout) */}
+      <div className="mt-2.5 sm:mt-3 flex flex-wrap items-center justify-center gap-x-5 sm:gap-x-9 gap-y-1.5 text-center">
         {activePlanet.telemetry.map((item, idx) => (
           <div key={idx} className="space-y-0.5">
-            <div className="text-[9px] sm:text-[10px] font-mono-code text-slate-400 tracking-[0.15em] uppercase">
+            <div className="text-[8px] sm:text-[9px] font-mono-code text-slate-400 tracking-[0.12em] uppercase">
               {item.label}
             </div>
-            <div className="text-xs sm:text-sm font-sans font-medium text-slate-100">
+            <div className="text-[11px] sm:text-xs font-sans font-medium text-slate-100">
               {item.value}
             </div>
           </div>
@@ -143,7 +143,7 @@ export const SolarHeader: React.FC<SolarHeaderProps> = ({
       </div>
 
       {/* Quick Action Control Bar: Switch between Focus & Overview */}
-      <div className="mt-3 flex items-center justify-center gap-3">
+      <div className="mt-2 sm:mt-2.5 flex items-center justify-center gap-3">
         {/* Toggle Overview / Focus Button */}
         <button
           onClick={onToggleOverview}

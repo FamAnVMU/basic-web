@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { X, Check, Copy, ExternalLink, Mail, Anchor, BookOpen, Target, Send, User } from 'lucide-react';
 import type { PlanetData } from '../../data/solarSystemData';
 import { FacebookIcon, GithubIcon, DiscordIcon } from './Icons';
+import { ConstellationCanvas } from './ConstellationCanvas';
 import confetti from 'canvas-confetti';
 import { soundManager } from '../../utils/soundEffects';
 
@@ -16,6 +17,7 @@ export const PlanetDetailModal: React.FC<PlanetDetailModalProps> = ({
   onClose,
 }) => {
   const [copiedKey, setCopiedKey] = useState<string | null>(null);
+  const [mousePos, setMousePos] = useState<{ x: number; y: number } | null>(null);
 
   const handleCopy = (text: string, key: string) => {
     soundManager.playClick();
@@ -55,32 +57,59 @@ export const PlanetDetailModal: React.FC<PlanetDetailModalProps> = ({
     }
   };
 
+  const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
+    const rect = e.currentTarget.getBoundingClientRect();
+    setMousePos({
+      x: e.clientX - rect.left,
+      y: e.clientY - rect.top,
+    });
+  };
+
+  const handleMouseLeave = () => {
+    setMousePos(null);
+  };
+
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/75 backdrop-blur-md animate-in fade-in duration-200">
-      <div className="relative w-full max-w-2xl rounded-3xl hologram-panel border border-cyan-400/50 p-6 sm:p-8 scanline-overlay shadow-[0_0_50px_rgba(0,243,255,0.25)] max-h-[88vh] overflow-y-auto">
-        {/* Close Button */}
+    <div
+      onClick={onClose}
+      className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md animate-in fade-in duration-200 cursor-pointer"
+      title="Bấm vào khoảng trống để đóng cửa sổ"
+    >
+      <div
+        onClick={(e) => e.stopPropagation()}
+        onWheel={(e) => e.stopPropagation()}
+        onMouseMove={handleMouseMove}
+        onMouseLeave={handleMouseLeave}
+        className="relative w-full max-w-2xl rounded-3xl hologram-panel border border-cyan-400/50 p-6 sm:p-8 shadow-[0_0_50px_rgba(0,243,255,0.25)] max-h-[85vh] overflow-y-auto modal-scrollbar cursor-default select-text"
+      >
+        {/* Interactive Constellation / Particle Network Background */}
+        <ConstellationCanvas mouseX={mousePos?.x} mouseY={mousePos?.y} />
+
+        {/* Close Button (Cách 1: ấn dấu X) */}
         <button
           onClick={onClose}
-          className="absolute top-5 right-5 p-2 rounded-xl bg-slate-900/80 border border-cyan-500/30 text-cyan-400 hover:bg-cyan-950/60 transition-colors cursor-pointer"
+          className="absolute top-5 right-5 p-2 rounded-xl bg-slate-900/90 border border-cyan-500/40 text-cyan-400 hover:bg-cyan-950/80 hover:border-cyan-300 hover:text-white transition-all cursor-pointer z-20 shadow-[0_0_15px_rgba(0,243,255,0.2)]"
           aria-label="Đóng cửa sổ"
+          title="Đóng cửa sổ (Hoặc bấm vào khoảng trống bên ngoài)"
         >
           <X className="w-5 h-5" />
         </button>
 
-        {/* Modal Header */}
-        <div className="flex items-center gap-3 mb-4">
-          <div className="p-2.5 rounded-xl bg-cyan-950/80 border border-cyan-400/40">
-            {getPlanetIcon(planet.id)}
-          </div>
-          <div>
-            <div className="text-[10px] font-mono-code text-cyan-400 tracking-widest uppercase">
-              THÔNG TIN HÀNH TINH
+        <div className="relative z-10">
+          {/* Modal Header */}
+          <div className="flex items-center gap-3 mb-4">
+            <div className="p-2.5 rounded-xl bg-cyan-950/80 border border-cyan-400/40">
+              {getPlanetIcon(planet.id)}
             </div>
-            <h2 className="text-xl sm:text-2xl font-bold font-orbitron text-white">
-              {planet.name}
-            </h2>
+            <div>
+              <div className="text-[10px] font-mono-code text-cyan-400 tracking-widest uppercase">
+                THÔNG TIN HÀNH TINH
+              </div>
+              <h2 className="text-xl sm:text-2xl font-bold font-orbitron text-white">
+                {planet.name}
+              </h2>
+            </div>
           </div>
-        </div>
 
         {/* Home / Avatar Special Layout */}
         {planet.id === 'home' && (
@@ -218,6 +247,7 @@ export const PlanetDetailModal: React.FC<PlanetDetailModalProps> = ({
               <ExternalLink className="w-3.5 h-3.5 text-cyan-400 group-hover:translate-x-0.5 transition-transform" />
             </a>
           </div>
+        </div>
         </div>
       </div>
     </div>
