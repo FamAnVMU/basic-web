@@ -24,6 +24,8 @@ interface SolarSystemCanvasProps {
   onSelectPlanet: (planetId: string, openDetails?: boolean) => void;
   onHoverPlanet: (info: HoverInfo | null) => void;
   onUpdateSatellitePositions: (positions: SatelliteScreenPosition[]) => void;
+  onActivePlanetChange?: (planetId: string) => void;
+  isDetailsOpen: boolean;
 }
 
 export const SolarSystemCanvas: React.FC<SolarSystemCanvasProps> = ({
@@ -32,6 +34,8 @@ export const SolarSystemCanvas: React.FC<SolarSystemCanvasProps> = ({
   onSelectPlanet,
   onHoverPlanet,
   onUpdateSatellitePositions,
+  onActivePlanetChange,
+  isDetailsOpen,
 }) => {
   const containerRef = useRef<HTMLDivElement>(null);
   const activePlanetRef = useRef<string>(activePlanetId);
@@ -39,6 +43,9 @@ export const SolarSystemCanvas: React.FC<SolarSystemCanvasProps> = ({
 
   const isOverviewRef = useRef<boolean>(isOverview);
   isOverviewRef.current = isOverview;
+
+  const isDetailsOpenRef = useRef<boolean>(isDetailsOpen);
+  isDetailsOpenRef.current = isDetailsOpen;
 
   const onSelectRef = useRef(onSelectPlanet);
   onSelectRef.current = onSelectPlanet;
@@ -48,6 +55,24 @@ export const SolarSystemCanvas: React.FC<SolarSystemCanvasProps> = ({
 
   const onUpdateSatellitesRef = useRef(onUpdateSatellitePositions);
   onUpdateSatellitesRef.current = onUpdateSatellitePositions;
+
+  const onActivePlanetChangeRef = useRef(onActivePlanetChange);
+  onActivePlanetChangeRef.current = onActivePlanetChange;
+
+  const targetProgressRef = useRef<number>(
+    Math.max(0, SOLAR_PLANETS.findIndex((p) => p.id === activePlanetId))
+  );
+  const currentProgressRef = useRef<number>(targetProgressRef.current);
+  const lastNotifiedPlanetId = useRef<string>(activePlanetId);
+
+  // Sync target progress whenever activePlanetId changes from UI clicks (dock / nav)
+  useEffect(() => {
+    const idx = SOLAR_PLANETS.findIndex((p) => p.id === activePlanetId);
+    if (idx !== -1 && Math.abs(targetProgressRef.current - idx) > 0.05) {
+      targetProgressRef.current = idx;
+      lastNotifiedPlanetId.current = activePlanetId;
+    }
+  }, [activePlanetId]);
 
   useEffect(() => {
     const container = containerRef.current;
@@ -293,11 +318,11 @@ export const SolarSystemCanvas: React.FC<SolarSystemCanvasProps> = ({
 
     // 6. Centerpiece Main Planet: "PHAM AN" (Orionis Style)
     const mainPlanetGroup = new THREE.Group();
-    // Offset downwards to match the screenshot composition where planet fills lower half
-    mainPlanetGroup.position.set(0, -5.8, 0);
+    // Offset downwards to match reference composition where planet comfortably sits in lower half
+    mainPlanetGroup.position.set(0, -6.8, 0);
     scene.add(mainPlanetGroup);
 
-    const mainRadius = 5.8;
+    const mainRadius = 5.2; // Slightly more compact to provide generous space for top telemetry text
     const mainGeo = new THREE.SphereGeometry(mainRadius, 128, 128); // 128x128 for ultra crisp sphere
     const mainTex = createHighResPlanetTexture('earth');
     const mainMat = new THREE.MeshStandardMaterial({
@@ -346,7 +371,7 @@ export const SolarSystemCanvas: React.FC<SolarSystemCanvasProps> = ({
     // 7. Concentric Circular Orbit Lines
     const orbitRadii = [8.8, 13.5, 18.5, 23.5, 28.5];
     const orbitGroup = new THREE.Group();
-    orbitGroup.position.set(0, -5.8, 0);
+    orbitGroup.position.set(0, -6.8, 0);
     orbitGroup.rotation.x = Math.PI * 0.08;
     scene.add(orbitGroup);
 
@@ -582,11 +607,62 @@ export const SolarSystemCanvas: React.FC<SolarSystemCanvasProps> = ({
 
     window.addEventListener('mousemove', handleMouseMove, { passive: true });
 
+    // Continuous gradual scroll & swipe listeners
+    const handleWheel = (e: WheelEvent) => {
+      // If modal is open, let user scroll modal content freely
+      if (isDetailsOpenRef.current) return;
+
+      let delta = e.deltaY;
+      if (e.deltaMode === 1) delta *= 25;
+      if (e.deltaMode === 2) delta *= 350;
+
+      // Continuous gradual progress:
+      // Each wheel tick smoothly moves the travel timeline
+      const progressChange = Math.max(-0.25, Math.min(0.25, delta * 0.0014));
+      targetProgressRef.current = Math.max(
+        0,
+        Math.min(SOLAR_PLANETS.length - 1, targetProgressRef.current + progressChange)
+      );
+
+      if (isOverviewRef.current) {
+        isOverviewRef.current = false;
+      }
+    };
+
+    let touchStartY = 0;
+    const handleTouchStart = (e: TouchEvent) => {
+      if (isDetailsOpenRef.current) return;
+      touchStartY = e.touches[0].clientY;
+    };
+
+    const handleTouchMove = (e: TouchEvent) => {
+      if (isDetailsOpenRef.current) return;
+      const currentY = e.touches[0].clientY;
+      const diffY = touchStartY - currentY;
+      touchStartY = currentY;
+
+      const progressChange = Math.max(-0.2, Math.min(0.2, diffY * 0.0035));
+      targetProgressRef.current = Math.max(
+        0,
+        Math.min(SOLAR_PLANETS.length - 1, targetProgressRef.current + progressChange)
+      );
+
+      if (isOverviewRef.current) {
+        isOverviewRef.current = false;
+      }
+    };
+
+    window.addEventListener('wheel', handleWheel, { passive: true });
+    window.addEventListener('touchstart', handleTouchStart, { passive: true });
+    window.addEventListener('touchmove', handleTouchMove, { passive: true });
+
     const handleClick = () => {
       raycaster.setFromCamera(mouseVector, camera);
 
       const mainIntersect = raycaster.intersectObject(mainMesh);
       if (mainIntersect.length > 0) {
+        targetProgressRef.current = 0;
+        isOverviewRef.current = false;
         onSelectRef.current('home', true);
         return;
       }
@@ -597,6 +673,11 @@ export const SolarSystemCanvas: React.FC<SolarSystemCanvasProps> = ({
       if (intersects.length > 0) {
         const pId = intersects[0].object.userData.planetId;
         if (pId) {
+          const idx = SOLAR_PLANETS.findIndex((p) => p.id === pId);
+          if (idx !== -1) {
+            targetProgressRef.current = idx;
+          }
+          isOverviewRef.current = false;
           onSelectRef.current(pId, true);
         }
       }
@@ -613,9 +694,65 @@ export const SolarSystemCanvas: React.FC<SolarSystemCanvasProps> = ({
 
     window.addEventListener('resize', handleResize);
 
-    // 11. Camera Flight Interpolation Variables
+    // 11. Helper to calculate ideal camera viewpoint for any planet index
+    // Ensures generous zoom-out distance so planets never overlap header or telemetry text
+    const getPlanetCameraView = (index: number) => {
+      const planet = SOLAR_PLANETS[index] || SOLAR_PLANETS[0];
+      const camPos = new THREE.Vector3();
+      const lookTarget = new THREE.Vector3();
+      const worldPos = new THREE.Vector3();
+
+      if (planet.id === 'home') {
+        mainMesh.getWorldPosition(worldPos);
+        // Generous zoom-out distance Z = 31.5 so main planet sits gracefully in lower 35% of screen
+        camPos.set(mouse.x * 1.2, 0.6 + mouse.y * 0.4, 31.5);
+        lookTarget.set(0, -4.8, 0);
+        return {
+          camPos,
+          lookTarget,
+          worldPos,
+          size: mainRadius,
+          color: 0x00f3ff,
+          planetId: 'home',
+        };
+      } else {
+        const found = orbitingPlanetMeshes.find((p) => p.id === planet.id);
+        if (found) {
+          found.mesh.getWorldPosition(worldPos);
+          const size = found.size;
+          const color = new THREE.Color(found.baseColor).getHex();
+          // Distance pushed back significantly (size * 6.5 + 18.0) so planet occupies only ~20-25% screen height
+          const camDist = size * 6.5 + 18.0;
+          camPos.set(
+            worldPos.x + mouse.x * 0.8,
+            worldPos.y + 1.6 + mouse.y * 0.4,
+            worldPos.z + camDist
+          );
+          // Look target slightly below planet center pushes the planet down into lower half of screen
+          lookTarget.set(worldPos.x, worldPos.y - 1.4, worldPos.z);
+          return {
+            camPos,
+            lookTarget,
+            worldPos,
+            size,
+            color,
+            planetId: planet.id,
+          };
+        }
+        return {
+          camPos: new THREE.Vector3(0, 0, 32),
+          lookTarget: new THREE.Vector3(0, 0, 0),
+          worldPos,
+          size: 2.0,
+          color: 0x00f3ff,
+          planetId: planet.id,
+        };
+      }
+    };
+
+    // Camera Flight Interpolation Variables
     const currentCameraPos = new THREE.Vector3().copy(camera.position);
-    const currentLookTarget = new THREE.Vector3(0, -1.8, 0);
+    const currentLookTarget = new THREE.Vector3(0, -4.5, 0);
 
     // 12. Animation Loop
     let animationFrameId: number;
@@ -645,62 +782,71 @@ export const SolarSystemCanvas: React.FC<SolarSystemCanvasProps> = ({
         p.mesh.rotation.y += delta * 0.2;
 
         const isCurrentActive = activePlanetRef.current === p.id;
-        p.glowMesh.scale.setScalar(isCurrentActive ? 1.6 : 1.25);
-        (p.glowMesh.material as THREE.MeshBasicMaterial).opacity = isCurrentActive ? 0.6 : 0.25;
+        p.glowMesh.scale.setScalar(isCurrentActive ? 1.5 : 1.2);
+        (p.glowMesh.material as THREE.MeshBasicMaterial).opacity = isCurrentActive ? 0.55 : 0.2;
       });
 
-      // 13. Determine Active Planet World Position for Camera Flight
-      const activeId = activePlanetRef.current;
+      // Update continuous smooth progress
+      currentProgressRef.current += (targetProgressRef.current - currentProgressRef.current) * 0.075;
+      const progress = currentProgressRef.current;
+
+      // Determine nearest planet and notify UI
+      const nearestIdx = Math.max(0, Math.min(SOLAR_PLANETS.length - 1, Math.round(progress)));
+      const nearestPlanet = SOLAR_PLANETS[nearestIdx];
+      if (nearestPlanet && nearestPlanet.id !== lastNotifiedPlanetId.current) {
+        lastNotifiedPlanetId.current = nearestPlanet.id;
+        activePlanetRef.current = nearestPlanet.id;
+        onActivePlanetChangeRef.current?.(nearestPlanet.id);
+      }
+
+      // Continuous interpolation between adjacent planets
+      const indexA = Math.floor(progress);
+      const indexB = Math.min(SOLAR_PLANETS.length - 1, indexA + 1);
+      const fraction = progress - indexA;
+      // Smooth cubic curve
+      const ease = fraction * fraction * (3 - 2 * fraction);
+
+      const viewA = getPlanetCameraView(indexA);
+      const viewB = getPlanetCameraView(indexB);
+
       const targetCameraPos = new THREE.Vector3();
       const targetLookTarget = new THREE.Vector3();
 
-      let activeWorldPos = new THREE.Vector3();
-      let activeSize = mainRadius;
-      let activeColor = 0x00f3ff;
-
       if (isOverviewRef.current) {
-        // Return to Full Solar System Overview vista with generous depth so text is completely clear
-        targetCameraPos.set(mouse.x * 1.8, 3.8 + mouse.y * 1.0, 35);
-        targetLookTarget.set(0, -3.8, 0);
-      } else if (activeId === 'home') {
-        mainMesh.getWorldPosition(activeWorldPos);
-        targetLookTarget.set(0, -4.8, 0);
-        // Comfortable focus distance without overlapping upper telemetry
-        targetCameraPos.set(mouse.x * 1.0, activeWorldPos.y + 2.0 + mouse.y * 0.5, 23.5);
+        targetCameraPos.set(mouse.x * 1.5, 4.0 + mouse.y * 0.8, 40.0);
+        targetLookTarget.set(0, -4.5, 0);
       } else {
-        const found = orbitingPlanetMeshes.find((p) => p.id === activeId);
-        if (found) {
-          found.mesh.getWorldPosition(activeWorldPos);
-          activeSize = found.size;
-          activeColor = new THREE.Color(found.baseColor).getHex();
+        targetCameraPos.lerpVectors(viewA.camPos, viewB.camPos, ease);
+        targetLookTarget.lerpVectors(viewA.lookTarget, viewB.lookTarget, ease);
 
-          targetLookTarget.copy(activeWorldPos);
-          // Fly directly close to that orbiting planet
-          targetCameraPos.set(
-            activeWorldPos.x + mouse.x * 0.5,
-            activeWorldPos.y + activeSize * 0.8 + mouse.y * 0.3,
-            activeWorldPos.z + activeSize * 3.6
-          );
-        }
+        // Cosmic flight arc lift between planets
+        const arcLift = Math.sin(fraction * Math.PI) * 2.8;
+        targetCameraPos.y += arcLift * 0.35;
+        targetCameraPos.z += arcLift * 0.55;
       }
 
-      // Smooth camera glide interpolation (lerp)
-      currentCameraPos.lerp(targetCameraPos, 0.038);
-      currentLookTarget.lerp(targetLookTarget, 0.038);
+      // Smooth camera interpolation
+      currentCameraPos.lerp(targetCameraPos, 0.07);
+      currentLookTarget.lerp(targetLookTarget, 0.07);
 
       camera.position.copy(currentCameraPos);
       camera.lookAt(currentLookTarget);
 
       // 14. Update Orbiting Satellites Around the Focused Planet
-      const activePlanetData = SOLAR_PLANETS.find((p) => p.id === activeId) || SOLAR_PLANETS[0];
-      const satDist = activeSize * 1.85 + 1.8;
+      const activePlanetData = SOLAR_PLANETS[nearestIdx] || SOLAR_PLANETS[0];
+      const nearestView = getPlanetCameraView(nearestIdx);
+      const activeWorldPos = nearestView.worldPos;
+      const activeSize = nearestView.size;
+      const activeColor = nearestView.color;
+
+      const satDist = activeSize * 2.2 + 2.2;
 
       const screenPositions: SatelliteScreenPosition[] = [];
 
       satelliteNodes3D.forEach((sat, sIdx) => {
         const angle = sat.angleOffset + elapsed * sat.speed;
         const satX = activeWorldPos.x + Math.cos(angle) * satDist;
-        const satY = activeWorldPos.y + Math.sin(angle * 1.2) * (activeSize * 0.4);
+        const satY = activeWorldPos.y + Math.sin(angle * 1.2) * (activeSize * 0.35);
         const satZ = activeWorldPos.z + Math.sin(angle) * satDist;
 
         sat.group.position.set(satX, satY, satZ);
@@ -752,6 +898,9 @@ export const SolarSystemCanvas: React.FC<SolarSystemCanvasProps> = ({
     return () => {
       cancelAnimationFrame(animationFrameId);
       window.removeEventListener('mousemove', handleMouseMove);
+      window.removeEventListener('wheel', handleWheel);
+      window.removeEventListener('touchstart', handleTouchStart);
+      window.removeEventListener('touchmove', handleTouchMove);
       window.removeEventListener('click', handleClick);
       window.removeEventListener('resize', handleResize);
 
