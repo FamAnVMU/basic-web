@@ -685,8 +685,8 @@ export const SolarSystemCanvas: React.FC<SolarSystemCanvasProps> = ({
       }
 
       // Smooth camera glide interpolation (lerp)
-      currentCameraPos.lerp(targetCameraPos, 0.045);
-      currentLookTarget.lerp(targetLookTarget, 0.045);
+      currentCameraPos.lerp(targetCameraPos, 0.038);
+      currentLookTarget.lerp(targetLookTarget, 0.038);
 
       camera.position.copy(currentCameraPos);
       camera.lookAt(currentLookTarget);
