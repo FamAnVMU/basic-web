@@ -1,7 +1,7 @@
 import React, { useState, useCallback } from 'react';
 import { SOLAR_PLANETS } from './data/solarSystemData';
 import { SolarSystemCanvas } from './components/canvas/SolarSystemCanvas';
-import type { SatelliteScreenPosition } from './components/canvas/SolarSystemCanvas';
+import type { SatelliteScreenPosition, NavTarget } from './components/canvas/SolarSystemCanvas';
 import { SolarHeader } from './components/ui/SolarHeader';
 import { OrbitPlanetBadges } from './components/ui/OrbitPlanetBadges';
 import { PlanetDock } from './components/ui/PlanetDock';
@@ -20,6 +20,10 @@ interface HoverInfo {
 
 export const App: React.FC = () => {
   const [activePlanetId, setActivePlanetId] = useState<string>('home');
+  const [navTarget, setNavTarget] = useState<NavTarget>({
+    id: 'home',
+    timestamp: Date.now(),
+  });
   const [isOverview, setIsOverview] = useState<boolean>(false); // Start facing home planet, completely smooth on load!
   const [hoverInfo, setHoverInfo] = useState<HoverInfo | null>(null);
   const [satellites, setSatellites] = useState<SatelliteScreenPosition[]>([]);
@@ -31,6 +35,7 @@ export const App: React.FC = () => {
 
   const handleSelectPlanet = useCallback((id: string, openDetails: boolean = false) => {
     setActivePlanetId(id);
+    setNavTarget({ id, timestamp: Date.now() });
     setIsOverview(false); // Zoom into the selected planet
     soundManager.playWarp();
     if (openDetails) {
@@ -61,6 +66,7 @@ export const App: React.FC = () => {
       {/* 3D High-Res Solar System Canvas with Continuous Gradual Flight & Orbiting Satellites */}
       <SolarSystemCanvas
         activePlanetId={activePlanetId}
+        navTarget={navTarget}
         isOverview={isOverview}
         onSelectPlanet={handleSelectPlanet}
         onHoverPlanet={setHoverInfo}

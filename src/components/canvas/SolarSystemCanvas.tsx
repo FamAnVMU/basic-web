@@ -18,8 +18,14 @@ export interface SatelliteScreenPosition {
   satellite: PlanetSatellite;
 }
 
+export interface NavTarget {
+  id: string;
+  timestamp: number;
+}
+
 interface SolarSystemCanvasProps {
   activePlanetId: string;
+  navTarget: NavTarget;
   isOverview: boolean;
   onSelectPlanet: (planetId: string, openDetails?: boolean) => void;
   onHoverPlanet: (info: HoverInfo | null) => void;
@@ -31,6 +37,7 @@ interface SolarSystemCanvasProps {
 
 export const SolarSystemCanvas: React.FC<SolarSystemCanvasProps> = ({
   activePlanetId,
+  navTarget,
   isOverview,
   onSelectPlanet,
   onHoverPlanet,
@@ -69,15 +76,26 @@ export const SolarSystemCanvas: React.FC<SolarSystemCanvasProps> = ({
   );
   const currentProgressRef = useRef<number>(targetProgressRef.current);
   const lastNotifiedPlanetId = useRef<string>(activePlanetId);
+  const isProgrammaticNavRef = useRef<boolean>(false);
 
-  // Sync target progress whenever activePlanetId changes from UI clicks (dock / nav)
+  // Sync target progress whenever navTarget changes from UI clicks (dock / nav / badges / meshes)
   useEffect(() => {
-    const idx = SOLAR_PLANETS.findIndex((p) => p.id === activePlanetId);
-    if (idx !== -1 && Math.abs(targetProgressRef.current - idx) > 0.05) {
-      targetProgressRef.current = idx;
-      lastNotifiedPlanetId.current = activePlanetId;
+    if (!navTarget) return;
+    const idx = SOLAR_PLANETS.findIndex((p) => p.id === navTarget.id);
+    if (idx !== -1) {
+      isProgrammaticNavRef.current = true;
+      lastNotifiedPlanetId.current = navTarget.id;
+      activePlanetRef.current = navTarget.id;
+
+      const current = currentProgressRef.current;
+      // If we are near the end (past 3.5) and user clicks Home (0), fly forward to 5 (which wraps to 0)
+      if (current > 3.5 && idx === 0) {
+        targetProgressRef.current = SOLAR_PLANETS.length;
+      } else {
+        targetProgressRef.current = idx;
+      }
     }
-  }, [activePlanetId]);
+  }, [navTarget]);
 
   useEffect(() => {
     const container = containerRef.current;
@@ -617,6 +635,9 @@ export const SolarSystemCanvas: React.FC<SolarSystemCanvasProps> = ({
       // If modal is open, let user scroll modal content freely
       if (isDetailsOpenRef.current) return;
 
+      // Taking over manual control
+      isProgrammaticNavRef.current = false;
+
       // If user is currently in overview, scrolling automatically exits overview to start interplanetary navigation
       if (isOverviewRef.current) {
         isOverviewRef.current = false;
@@ -628,12 +649,16 @@ export const SolarSystemCanvas: React.FC<SolarSystemCanvasProps> = ({
       if (e.deltaMode === 2) delta *= 350;
 
       // Continuous gradual progress:
-      // Each wheel tick smoothly moves the travel timeline
-      const progressChange = Math.max(-0.25, Math.min(0.25, delta * 0.0014));
+      let progressChange = Math.max(-0.25, Math.min(0.25, delta * 0.0014));
+      // If at or near contact (currentProgress >= 3.8) and scrolling down, ensure loop back to home is smooth
+      if (currentProgressRef.current >= 3.8 && delta > 0) {
+        progressChange = Math.max(0.18, Math.min(0.3, delta * 0.002));
+      }
+
       // Allow timeline to reach past last planet (Contact = 4) towards 5.0 to loop back to Home (0.0)
       targetProgressRef.current = Math.max(
         0,
-        Math.min(SOLAR_PLANETS.length + 0.4, targetProgressRef.current + progressChange)
+        Math.min(SOLAR_PLANETS.length + 0.3, targetProgressRef.current + progressChange)
       );
     };
 
@@ -646,6 +671,8 @@ export const SolarSystemCanvas: React.FC<SolarSystemCanvasProps> = ({
     const handleTouchMove = (e: TouchEvent) => {
       if (isDetailsOpenRef.current) return;
 
+      isProgrammaticNavRef.current = false;
+
       if (isOverviewRef.current) {
         isOverviewRef.current = false;
         onExitOverviewRef.current?.();
@@ -655,10 +682,14 @@ export const SolarSystemCanvas: React.FC<SolarSystemCanvasProps> = ({
       const diffY = touchStartY - currentY;
       touchStartY = currentY;
 
-      const progressChange = Math.max(-0.2, Math.min(0.2, diffY * 0.0035));
+      let progressChange = Math.max(-0.2, Math.min(0.2, diffY * 0.0035));
+      if (currentProgressRef.current >= 3.8 && diffY > 0) {
+        progressChange = Math.max(0.15, Math.min(0.25, diffY * 0.004));
+      }
+
       targetProgressRef.current = Math.max(
         0,
-        Math.min(SOLAR_PLANETS.length + 0.4, targetProgressRef.current + progressChange)
+        Math.min(SOLAR_PLANETS.length + 0.3, targetProgressRef.current + progressChange)
       );
     };
 
@@ -809,14 +840,29 @@ export const SolarSystemCanvas: React.FC<SolarSystemCanvasProps> = ({
       currentProgressRef.current += (targetProgressRef.current - currentProgressRef.current) * 0.075;
       const progress = currentProgressRef.current;
 
-      // Determine nearest planet and notify UI (cycles 0 to 4)
+      // Determine nearest planet (cycles 0 to 4)
       const rawNearest = Math.round(progress);
       const nearestIdx = rawNearest % SOLAR_PLANETS.length;
       const nearestPlanet = SOLAR_PLANETS[nearestIdx];
-      if (nearestPlanet && nearestPlanet.id !== lastNotifiedPlanetId.current) {
-        lastNotifiedPlanetId.current = nearestPlanet.id;
-        activePlanetRef.current = nearestPlanet.id;
-        onActivePlanetChangeRef.current?.(nearestPlanet.id);
+
+      // Handle programmatic navigation vs free scroll
+      if (isProgrammaticNavRef.current) {
+        // If close enough to destination, complete programmatic arrival
+        if (Math.abs(currentProgressRef.current - targetProgressRef.current) < 0.04) {
+          currentProgressRef.current = targetProgressRef.current;
+          if (currentProgressRef.current >= SOLAR_PLANETS.length) {
+            currentProgressRef.current -= SOLAR_PLANETS.length;
+            targetProgressRef.current = 0;
+          }
+          isProgrammaticNavRef.current = false;
+        }
+      } else {
+        // Freely scrolling: notify UI when active planet changes (cycles 0 to 4)
+        if (nearestPlanet && nearestPlanet.id !== lastNotifiedPlanetId.current) {
+          lastNotifiedPlanetId.current = nearestPlanet.id;
+          activePlanetRef.current = nearestPlanet.id;
+          onActivePlanetChangeRef.current?.(nearestPlanet.id);
+        }
       }
 
       // Continuous interpolation between adjacent planets (with cyclic wrap to index 0)
