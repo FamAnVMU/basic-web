@@ -14,19 +14,28 @@ export const PlanetDock: React.FC<PlanetDockProps> = ({
   const activeIdx = Math.max(0, SOLAR_PLANETS.findIndex((p) => p.id === activePlanetId));
   const progressPercent = (activeIdx / (SOLAR_PLANETS.length - 1)) * 100;
 
-  const handleClick = (id: string) => {
+  const handleClick = (e: React.MouseEvent, id: string) => {
+    e.stopPropagation();
+    e.preventDefault();
     soundManager.playClick();
     onSelectPlanet(id, false); // Chuyển góc nhìn sang hành tinh, không mở modal thông tin
   };
 
   return (
-    <div className="fixed bottom-5 inset-x-0 z-30 flex flex-col items-center gap-1.5 px-4 select-none pointer-events-none">
+    <div
+      onClick={(e) => e.stopPropagation()}
+      className="fixed bottom-5 inset-x-0 z-30 flex flex-col items-center gap-1.5 px-4 select-none pointer-events-none"
+    >
       {/* Scroll Navigation Hint */}
       <div className="text-[9px] font-mono-code text-cyan-400/80 tracking-widest uppercase">
         CUỘN CHUỘT ĐỂ CHUYỂN DẦN HÀNH TINH • BẤM ĐỂ CHUYỂN NHANH
       </div>
 
-      <div className="pointer-events-auto relative p-1.5 sm:p-2 rounded-2xl bg-[#020612]/85 backdrop-blur-xl border border-cyan-500/25 flex items-center gap-1 sm:gap-2 shadow-[0_8px_32px_rgba(0,0,0,0.7)] overflow-hidden">
+      <div
+        onClick={(e) => e.stopPropagation()}
+        onPointerDown={(e) => e.stopPropagation()}
+        className="pointer-events-auto relative p-1.5 sm:p-2 rounded-2xl bg-[#020612]/85 backdrop-blur-xl border border-cyan-500/25 flex items-center gap-1 sm:gap-2 shadow-[0_8px_32px_rgba(0,0,0,0.7)] overflow-hidden"
+      >
         {/* Subtle Travel Track */}
         <div className="absolute top-0 inset-x-0 h-[2px] bg-cyan-950/50">
           <div
@@ -40,7 +49,7 @@ export const PlanetDock: React.FC<PlanetDockProps> = ({
           return (
             <button
               key={planet.id}
-              onClick={() => handleClick(planet.id)}
+              onClick={(e) => handleClick(e, planet.id)}
               className={`flex items-center gap-2 px-2.5 sm:px-3.5 py-1.5 rounded-xl text-xs font-mono-code transition-all cursor-pointer ${
                 isActive
                   ? 'bg-cyan-500/20 text-cyan-300 border border-cyan-400/50 shadow-[0_0_12px_rgba(0,243,255,0.3)]'

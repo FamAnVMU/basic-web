@@ -105,15 +105,6 @@ export const PlanetDetailModal: React.FC<PlanetDetailModalProps> = ({
               <p className="text-xs text-slate-300 leading-relaxed">
                 Sinh viên đầu năm 3 (K65), định hướng học tập nghiêm túc, rèn luyện tư duy lập trình và tìm kiếm cơ hội thực tập cọ xát thực tế.
               </p>
-              {/* Email & GitHub Quick Badges */}
-              <div className="flex flex-wrap gap-2 pt-1 text-[11px] font-mono-code">
-                <span className="px-2.5 py-1 rounded-lg bg-cyan-950/60 border border-cyan-500/30 text-cyan-300">
-                  ✉️ phama6372@gmail.com
-                </span>
-                <span className="px-2.5 py-1 rounded-lg bg-cyan-950/60 border border-cyan-500/30 text-slate-200">
-                  🐱 github.com/FamAnVMU
-                </span>
-              </div>
             </div>
           </div>
         )}

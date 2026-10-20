@@ -58,10 +58,9 @@ export const SOLAR_PLANETS: PlanetData[] = [
       'Chào bạn! Tôi là Phạm An, hiện đang là sinh viên đầu năm 3 (khóa K65) chuyên ngành Công nghệ Thông tin tại Trường Đại học Hàng hải Việt Nam (VMU). Tôi chưa có kinh nghiệm làm việc thực tế tại doanh nghiệp; website này được tạo ra để tổng hợp thông tin học tập của bản thân và kết nối giao lưu với bạn bè, thầy cô và các nhà tuyển dụng.',
     highlights: [
       'Sinh viên chính quy K65 Khoa Công nghệ Thông tin - Trường ĐH Hàng hải Việt Nam',
-      'Email chính thức: phama6372@gmail.com',
-      'GitHub cá nhân: github.com/FamAnVMU',
       'Đang tích lũy kiến thức cơ sở ngành và rèn luyện tư duy lập trình',
       'Thẳng thắn, trung thực, có tinh thần cầu thị và khao khát được học hỏi',
+      'Chủ động tự tìm hiểu công nghệ mới và xây dựng nền móng vững chắc',
     ],
     satellites: [
       {

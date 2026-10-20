@@ -15,7 +15,8 @@ export const OrbitPlanetBadges: React.FC<OrbitPlanetBadgesProps> = ({
   const activePlanet =
     SOLAR_PLANETS.find((p) => p.id === activePlanetId) || SOLAR_PLANETS[0];
 
-  const handleClick = () => {
+  const handleClick = (e: React.MouseEvent) => {
+    e.stopPropagation();
     soundManager.playClick();
     onSelectPlanet(activePlanet.id, true); // Bấm vào badge HUD để mở thông tin chi tiết
   };

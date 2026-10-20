@@ -87,13 +87,9 @@ export const SolarSystemCanvas: React.FC<SolarSystemCanvasProps> = ({
       lastNotifiedPlanetId.current = navTarget.id;
       activePlanetRef.current = navTarget.id;
 
-      const current = currentProgressRef.current;
-      // If we are near the end (past 3.5) and user clicks Home (0), fly forward to 5 (which wraps to 0)
-      if (current > 3.5 && idx === 0) {
-        targetProgressRef.current = SOLAR_PLANETS.length;
-      } else {
-        targetProgressRef.current = idx;
-      }
+      // Jump progress directly to destination so camera flies straight there without traversing intermediate planets!
+      currentProgressRef.current = idx;
+      targetProgressRef.current = idx;
     }
   }, [navTarget]);
 
@@ -568,6 +564,13 @@ export const SolarSystemCanvas: React.FC<SolarSystemCanvasProps> = ({
     const mouseVector = new THREE.Vector2();
 
     const handleMouseMove = (e: MouseEvent) => {
+      // If cursor is over HTML UI elements (dock, badges, header), do not raycast 3D planets
+      if (e.target !== renderer.domElement) {
+        document.body.style.cursor = 'default';
+        onHoverRef.current(null);
+        return;
+      }
+
       mouse.targetX = (e.clientX / window.innerWidth) * 2 - 1;
       mouse.targetY = -(e.clientY / window.innerHeight) * 2 + 1;
 
@@ -697,18 +700,36 @@ export const SolarSystemCanvas: React.FC<SolarSystemCanvasProps> = ({
     window.addEventListener('touchstart', handleTouchStart, { passive: true });
     window.addEventListener('touchmove', handleTouchMove, { passive: true });
 
-    const handleClick = () => {
+    const handleClick = (e: MouseEvent) => {
+      // Ignore click if it didn't originate directly on the 3D canvas (prevents UI dock / navbar overlap clicks)
+      if (e.target !== renderer.domElement) return;
+
+      mouseVector.x = (e.clientX / window.innerWidth) * 2 - 1;
+      mouseVector.y = -(e.clientY / window.innerHeight) * 2 + 1;
+
       raycaster.setFromCamera(mouseVector, camera);
 
+      // Check click on central planet ("home")
       const mainIntersect = raycaster.intersectObject(mainMesh);
       if (mainIntersect.length > 0) {
-        targetProgressRef.current = 0;
-        isOverviewRef.current = false;
-        onExitOverviewRef.current?.();
-        onSelectRef.current('home', true);
+        const isAlreadyActive = activePlanetRef.current === 'home';
+        if (isAlreadyActive) {
+          // Already at home planet -> 2nd click opens information modal
+          onSelectRef.current('home', true);
+        } else {
+          // Currently at another planet -> 1st click flies directly to home planet without opening modal
+          currentProgressRef.current = 0;
+          targetProgressRef.current = 0;
+          activePlanetRef.current = 'home';
+          lastNotifiedPlanetId.current = 'home';
+          isOverviewRef.current = false;
+          onExitOverviewRef.current?.();
+          onSelectRef.current('home', false);
+        }
         return;
       }
 
+      // Check click on orbiting planets
       const interactiveMeshes = orbitingPlanetMeshes.map((p) => p.mesh);
       const intersects = raycaster.intersectObjects(interactiveMeshes);
 
@@ -717,16 +738,26 @@ export const SolarSystemCanvas: React.FC<SolarSystemCanvasProps> = ({
         if (pId) {
           const idx = SOLAR_PLANETS.findIndex((p) => p.id === pId);
           if (idx !== -1) {
-            targetProgressRef.current = idx;
+            const isAlreadyActive = activePlanetRef.current === pId;
+            if (isAlreadyActive) {
+              // Already at target planet -> 2nd click opens information modal
+              onSelectRef.current(pId, true);
+            } else {
+              // Currently at another planet -> 1st click flies directly to this planet without opening modal
+              currentProgressRef.current = idx;
+              targetProgressRef.current = idx;
+              activePlanetRef.current = pId;
+              lastNotifiedPlanetId.current = pId;
+              isOverviewRef.current = false;
+              onExitOverviewRef.current?.();
+              onSelectRef.current(pId, false);
+            }
           }
-          isOverviewRef.current = false;
-          onExitOverviewRef.current?.();
-          onSelectRef.current(pId, true);
         }
       }
     };
 
-    window.addEventListener('click', handleClick);
+    renderer.domElement.addEventListener('click', handleClick);
 
     const handleResize = () => {
       if (!renderer || !camera) return;
@@ -967,7 +998,7 @@ export const SolarSystemCanvas: React.FC<SolarSystemCanvasProps> = ({
       window.removeEventListener('wheel', handleWheel);
       window.removeEventListener('touchstart', handleTouchStart);
       window.removeEventListener('touchmove', handleTouchMove);
-      window.removeEventListener('click', handleClick);
+      renderer.domElement.removeEventListener('click', handleClick);
       window.removeEventListener('resize', handleResize);
 
       particleTexture.dispose();

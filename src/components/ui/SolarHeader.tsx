@@ -22,19 +22,23 @@ export const SolarHeader: React.FC<SolarHeaderProps> = ({
   isOverview,
   onToggleOverview,
 }) => {
-  const handleNavClick = (id: string) => {
+  const handleNavClick = (e: React.MouseEvent, id: string) => {
+    e.stopPropagation();
     soundManager.playClick();
     onSelectPlanet(id);
   };
 
   return (
-    <header className="relative z-30 pt-6 px-4 sm:px-8 max-w-7xl mx-auto w-full select-none">
+    <header
+      onClick={(e) => e.stopPropagation()}
+      className="relative z-30 pt-6 px-4 sm:px-8 max-w-7xl mx-auto w-full select-none"
+    >
       {/* Top Navigation Row (Identical to screenshot layout) */}
       <div className="flex items-center justify-between text-xs tracking-wider text-slate-300 font-sans">
         {/* Left Nav: Home, About, Contact */}
         <div className="flex items-center gap-5 sm:gap-8">
           <button
-            onClick={() => handleNavClick('home')}
+            onClick={(e) => handleNavClick(e, 'home')}
             className={`hover:text-cyan-300 transition-colors cursor-pointer ${
               activePlanet.id === 'home' && !isOverview ? 'text-cyan-400 font-semibold' : 'text-slate-300'
             }`}
@@ -42,13 +46,16 @@ export const SolarHeader: React.FC<SolarHeaderProps> = ({
             Home
           </button>
           <button
-            onClick={onOpenDetails}
+            onClick={(e) => {
+              e.stopPropagation();
+              onOpenDetails();
+            }}
             className="hover:text-cyan-300 transition-colors cursor-pointer text-slate-300"
           >
             About
           </button>
           <button
-            onClick={() => handleNavClick('contact')}
+            onClick={(e) => handleNavClick(e, 'contact')}
             className={`hover:text-cyan-300 transition-colors cursor-pointer ${
               activePlanet.id === 'contact' ? 'text-cyan-400 font-semibold' : 'text-slate-300'
             }`}
@@ -58,7 +65,10 @@ export const SolarHeader: React.FC<SolarHeaderProps> = ({
         </div>
 
         {/* Center Brand / Logo: P H A M   A N // V M U */}
-        <div className="text-center cursor-pointer" onClick={() => handleNavClick('home')}>
+        <div
+          className="text-center cursor-pointer"
+          onClick={(e) => handleNavClick(e, 'home')}
+        >
           <div className="font-orbitron font-extrabold tracking-[0.25em] text-white text-sm sm:text-base leading-none">
             PHAM AN
           </div>
@@ -70,7 +80,7 @@ export const SolarHeader: React.FC<SolarHeaderProps> = ({
         {/* Right Nav: VMU, Knowledge, Goals + Sound & View Toggle */}
         <div className="flex items-center gap-4 sm:gap-7">
           <button
-            onClick={() => handleNavClick('vmu')}
+            onClick={(e) => handleNavClick(e, 'vmu')}
             className={`hidden sm:inline hover:text-cyan-300 transition-colors cursor-pointer ${
               activePlanet.id === 'vmu' ? 'text-cyan-400 font-semibold' : 'text-slate-300'
             }`}
@@ -78,7 +88,7 @@ export const SolarHeader: React.FC<SolarHeaderProps> = ({
             ĐH Hàng Hải
           </button>
           <button
-            onClick={() => handleNavClick('knowledge')}
+            onClick={(e) => handleNavClick(e, 'knowledge')}
             className={`hidden sm:inline hover:text-cyan-300 transition-colors cursor-pointer ${
               activePlanet.id === 'knowledge' ? 'text-cyan-400 font-semibold' : 'text-slate-300'
             }`}
@@ -86,7 +96,7 @@ export const SolarHeader: React.FC<SolarHeaderProps> = ({
             Kiến Thức
           </button>
           <button
-            onClick={() => handleNavClick('goals')}
+            onClick={(e) => handleNavClick(e, 'goals')}
             className={`hover:text-cyan-300 transition-colors cursor-pointer ${
               activePlanet.id === 'goals' ? 'text-cyan-400 font-semibold' : 'text-slate-300'
             }`}
@@ -96,7 +106,10 @@ export const SolarHeader: React.FC<SolarHeaderProps> = ({
 
           {/* Sound Toggle */}
           <button
-            onClick={onToggleSound}
+            onClick={(e) => {
+              e.stopPropagation();
+              onToggleSound();
+            }}
             className="p-1 rounded text-slate-400 hover:text-cyan-300 transition-colors cursor-pointer"
             title={isMuted ? 'Bật âm thanh không gian' : 'Tắt âm thanh'}
           >
