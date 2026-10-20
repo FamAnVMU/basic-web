@@ -20,7 +20,7 @@ interface HoverInfo {
 
 export const App: React.FC = () => {
   const [activePlanetId, setActivePlanetId] = useState<string>('home');
-  const [isOverview, setIsOverview] = useState<boolean>(false);
+  const [isOverview, setIsOverview] = useState<boolean>(true); // Start in expansive solar system overview!
   const [hoverInfo, setHoverInfo] = useState<HoverInfo | null>(null);
   const [satellites, setSatellites] = useState<SatelliteScreenPosition[]>([]);
   const [isDetailsOpen, setIsDetailsOpen] = useState<boolean>(false);

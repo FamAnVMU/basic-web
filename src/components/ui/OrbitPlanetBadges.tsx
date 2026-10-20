@@ -20,7 +20,7 @@ export const OrbitPlanetBadges: React.FC<OrbitPlanetBadgesProps> = ({
   const knowledgePlanet = SOLAR_PLANETS.find((p) => p.id === 'knowledge');
 
   return (
-    <div className="pointer-events-none absolute inset-x-0 top-1/2 -translate-y-1/2 z-20 px-4 sm:px-12 flex justify-between items-center select-none">
+    <div className="pointer-events-none absolute inset-x-0 top-[60%] -translate-y-1/2 z-20 px-4 sm:px-12 flex justify-between items-center select-none">
       {/* Left Planet Label: ETHERON style (VMU ORBIT) */}
       {vmuPlanet && (
         <button

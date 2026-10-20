@@ -60,13 +60,13 @@ export const SolarSystemCanvas: React.FC<SolarSystemCanvasProps> = ({
     scene.fog = new THREE.FogExp2(0x020612, 0.0008);
 
     const camera = new THREE.PerspectiveCamera(
-      48,
+      46,
       window.innerWidth / window.innerHeight,
       0.1,
       2500
     );
-    // Initial overview position
-    camera.position.set(0, 4.5, 26);
+    // Initial overview position with generous depth so text never overlaps
+    camera.position.set(0, 3.8, 35);
 
     const renderer = new THREE.WebGLRenderer({
       powerPreference: 'high-performance',
@@ -293,10 +293,11 @@ export const SolarSystemCanvas: React.FC<SolarSystemCanvasProps> = ({
 
     // 6. Centerpiece Main Planet: "PHAM AN" (Orionis Style)
     const mainPlanetGroup = new THREE.Group();
-    mainPlanetGroup.position.set(0, -3.2, 0);
+    // Offset downwards to match the screenshot composition where planet fills lower half
+    mainPlanetGroup.position.set(0, -5.8, 0);
     scene.add(mainPlanetGroup);
 
-    const mainRadius = 6.4;
+    const mainRadius = 5.8;
     const mainGeo = new THREE.SphereGeometry(mainRadius, 128, 128); // 128x128 for ultra crisp sphere
     const mainTex = createHighResPlanetTexture('earth');
     const mainMat = new THREE.MeshStandardMaterial({
@@ -345,7 +346,7 @@ export const SolarSystemCanvas: React.FC<SolarSystemCanvasProps> = ({
     // 7. Concentric Circular Orbit Lines
     const orbitRadii = [8.8, 13.5, 18.5, 23.5, 28.5];
     const orbitGroup = new THREE.Group();
-    orbitGroup.position.set(0, -3.2, 0);
+    orbitGroup.position.set(0, -5.8, 0);
     orbitGroup.rotation.x = Math.PI * 0.08;
     scene.add(orbitGroup);
 
@@ -503,7 +504,7 @@ export const SolarSystemCanvas: React.FC<SolarSystemCanvasProps> = ({
         lineGeo,
         angleOffset: (Math.PI * 2 * i) / 4,
         orbitDist: 1.8,
-        speed: 0.6 + i * 0.1,
+        speed: 0.08 + i * 0.02, // Gentle, slow cosmic orbit
       });
     }
 
@@ -658,14 +659,14 @@ export const SolarSystemCanvas: React.FC<SolarSystemCanvasProps> = ({
       let activeColor = 0x00f3ff;
 
       if (isOverviewRef.current) {
-        // Return to Full Solar System Overview vista (matching screenshot)
-        targetCameraPos.set(mouse.x * 1.5, 4.5 + mouse.y * 1.0, 26);
-        targetLookTarget.set(0, -1.8, 0);
+        // Return to Full Solar System Overview vista with generous depth so text is completely clear
+        targetCameraPos.set(mouse.x * 1.8, 3.8 + mouse.y * 1.0, 35);
+        targetLookTarget.set(0, -3.8, 0);
       } else if (activeId === 'home') {
         mainMesh.getWorldPosition(activeWorldPos);
-        targetLookTarget.copy(activeWorldPos);
-        // Move camera closer so central planet is majestic & detailed
-        targetCameraPos.set(mouse.x * 1.0, activeWorldPos.y + 1.2 + mouse.y * 0.6, 15.5);
+        targetLookTarget.set(0, -4.8, 0);
+        // Comfortable focus distance without overlapping upper telemetry
+        targetCameraPos.set(mouse.x * 1.0, activeWorldPos.y + 2.0 + mouse.y * 0.5, 23.5);
       } else {
         const found = orbitingPlanetMeshes.find((p) => p.id === activeId);
         if (found) {
@@ -674,11 +675,11 @@ export const SolarSystemCanvas: React.FC<SolarSystemCanvasProps> = ({
           activeColor = new THREE.Color(found.baseColor).getHex();
 
           targetLookTarget.copy(activeWorldPos);
-          // Fly directly down close to that orbiting planet
+          // Fly directly close to that orbiting planet
           targetCameraPos.set(
-            activeWorldPos.x + mouse.x * 0.6,
-            activeWorldPos.y + activeSize * 0.8 + mouse.y * 0.4,
-            activeWorldPos.z + activeSize * 3.4
+            activeWorldPos.x + mouse.x * 0.5,
+            activeWorldPos.y + activeSize * 0.8 + mouse.y * 0.3,
+            activeWorldPos.z + activeSize * 3.6
           );
         }
       }
@@ -692,7 +693,7 @@ export const SolarSystemCanvas: React.FC<SolarSystemCanvasProps> = ({
 
       // 14. Update Orbiting Satellites Around the Focused Planet
       const activePlanetData = SOLAR_PLANETS.find((p) => p.id === activeId) || SOLAR_PLANETS[0];
-      const satDist = activeSize * 1.6 + 1.2;
+      const satDist = activeSize * 1.85 + 1.8;
 
       const screenPositions: SatelliteScreenPosition[] = [];
 
@@ -703,7 +704,7 @@ export const SolarSystemCanvas: React.FC<SolarSystemCanvasProps> = ({
         const satZ = activeWorldPos.z + Math.sin(angle) * satDist;
 
         sat.group.position.set(satX, satY, satZ);
-        sat.group.rotation.y = elapsed * 0.8;
+        sat.group.rotation.y = elapsed * 0.2;
 
         // Update connecting beam line to planet
         const positions = sat.lineGeo.attributes.position.array as Float32Array;

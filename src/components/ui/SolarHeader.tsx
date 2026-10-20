@@ -106,17 +106,17 @@ export const SolarHeader: React.FC<SolarHeaderProps> = ({
       </div>
 
       {/* Hero Display Title: Large Spaced Uppercase (like ORIONIS in screenshot) */}
-      <div className="text-center mt-6 sm:mt-10 transition-all duration-500">
-        <h1 className="font-orbitron font-medium text-3xl sm:text-5xl lg:text-6xl text-white tracking-[0.35em] sm:tracking-[0.5em] uppercase text-cyan-glow-subtle">
+      <div className="text-center mt-4 sm:mt-6 transition-all duration-500">
+        <h1 className="font-orbitron font-medium text-2xl sm:text-4xl lg:text-5xl text-white tracking-[0.35em] sm:tracking-[0.5em] uppercase text-cyan-glow-subtle">
           {activePlanet.displayTitle}
         </h1>
-        <p className="text-[11px] sm:text-xs font-mono-code text-cyan-400/90 tracking-widest uppercase mt-2">
+        <p className="text-[10px] sm:text-xs font-mono-code text-cyan-400/90 tracking-widest uppercase mt-1">
           {activePlanet.subtitle}
         </p>
       </div>
 
       {/* Horizontal Telemetry Stats Row (Exact layout from reference image) */}
-      <div className="mt-5 sm:mt-6 flex flex-wrap items-center justify-center gap-x-6 sm:gap-x-12 gap-y-2.5 text-center">
+      <div className="mt-3.5 sm:mt-4 flex flex-wrap items-center justify-center gap-x-6 sm:gap-x-12 gap-y-2 text-center">
         {activePlanet.telemetry.map((item, idx) => (
           <div key={idx} className="space-y-0.5">
             <div className="text-[9px] sm:text-[10px] font-mono-code text-slate-400 tracking-[0.15em] uppercase">
@@ -130,7 +130,7 @@ export const SolarHeader: React.FC<SolarHeaderProps> = ({
       </div>
 
       {/* Quick Action Control Bar: Switch between Focus & Overview */}
-      <div className="mt-4 flex items-center justify-center gap-3">
+      <div className="mt-3 flex items-center justify-center gap-3">
         {/* Toggle Overview / Focus Button */}
         <button
           onClick={onToggleOverview}
