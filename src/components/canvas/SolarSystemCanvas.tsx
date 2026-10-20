@@ -25,6 +25,7 @@ interface SolarSystemCanvasProps {
   onHoverPlanet: (info: HoverInfo | null) => void;
   onUpdateSatellitePositions: (positions: SatelliteScreenPosition[]) => void;
   onActivePlanetChange?: (planetId: string) => void;
+  onExitOverview?: () => void;
   isDetailsOpen: boolean;
 }
 
@@ -35,6 +36,7 @@ export const SolarSystemCanvas: React.FC<SolarSystemCanvasProps> = ({
   onHoverPlanet,
   onUpdateSatellitePositions,
   onActivePlanetChange,
+  onExitOverview,
   isDetailsOpen,
 }) => {
   const containerRef = useRef<HTMLDivElement>(null);
@@ -58,6 +60,9 @@ export const SolarSystemCanvas: React.FC<SolarSystemCanvasProps> = ({
 
   const onActivePlanetChangeRef = useRef(onActivePlanetChange);
   onActivePlanetChangeRef.current = onActivePlanetChange;
+
+  const onExitOverviewRef = useRef(onExitOverview);
+  onExitOverviewRef.current = onExitOverview;
 
   const targetProgressRef = useRef<number>(
     Math.max(0, SOLAR_PLANETS.findIndex((p) => p.id === activePlanetId))
@@ -90,8 +95,8 @@ export const SolarSystemCanvas: React.FC<SolarSystemCanvasProps> = ({
       0.1,
       2500
     );
-    // Initial overview position with generous depth so text never overlaps
-    camera.position.set(0, 3.8, 35);
+    // Initial camera position matches focused home planet view with zero stutter
+    camera.position.set(0, 0.6, 31.5);
 
     const renderer = new THREE.WebGLRenderer({
       powerPreference: 'high-performance',
@@ -612,6 +617,12 @@ export const SolarSystemCanvas: React.FC<SolarSystemCanvasProps> = ({
       // If modal is open, let user scroll modal content freely
       if (isDetailsOpenRef.current) return;
 
+      // If user is currently in overview, scrolling automatically exits overview to start interplanetary navigation
+      if (isOverviewRef.current) {
+        isOverviewRef.current = false;
+        onExitOverviewRef.current?.();
+      }
+
       let delta = e.deltaY;
       if (e.deltaMode === 1) delta *= 25;
       if (e.deltaMode === 2) delta *= 350;
@@ -619,14 +630,11 @@ export const SolarSystemCanvas: React.FC<SolarSystemCanvasProps> = ({
       // Continuous gradual progress:
       // Each wheel tick smoothly moves the travel timeline
       const progressChange = Math.max(-0.25, Math.min(0.25, delta * 0.0014));
+      // Allow timeline to reach past last planet (Contact = 4) towards 5.0 to loop back to Home (0.0)
       targetProgressRef.current = Math.max(
         0,
-        Math.min(SOLAR_PLANETS.length - 1, targetProgressRef.current + progressChange)
+        Math.min(SOLAR_PLANETS.length + 0.4, targetProgressRef.current + progressChange)
       );
-
-      if (isOverviewRef.current) {
-        isOverviewRef.current = false;
-      }
     };
 
     let touchStartY = 0;
@@ -637,6 +645,12 @@ export const SolarSystemCanvas: React.FC<SolarSystemCanvasProps> = ({
 
     const handleTouchMove = (e: TouchEvent) => {
       if (isDetailsOpenRef.current) return;
+
+      if (isOverviewRef.current) {
+        isOverviewRef.current = false;
+        onExitOverviewRef.current?.();
+      }
+
       const currentY = e.touches[0].clientY;
       const diffY = touchStartY - currentY;
       touchStartY = currentY;
@@ -644,12 +658,8 @@ export const SolarSystemCanvas: React.FC<SolarSystemCanvasProps> = ({
       const progressChange = Math.max(-0.2, Math.min(0.2, diffY * 0.0035));
       targetProgressRef.current = Math.max(
         0,
-        Math.min(SOLAR_PLANETS.length - 1, targetProgressRef.current + progressChange)
+        Math.min(SOLAR_PLANETS.length + 0.4, targetProgressRef.current + progressChange)
       );
-
-      if (isOverviewRef.current) {
-        isOverviewRef.current = false;
-      }
     };
 
     window.addEventListener('wheel', handleWheel, { passive: true });
@@ -663,6 +673,7 @@ export const SolarSystemCanvas: React.FC<SolarSystemCanvasProps> = ({
       if (mainIntersect.length > 0) {
         targetProgressRef.current = 0;
         isOverviewRef.current = false;
+        onExitOverviewRef.current?.();
         onSelectRef.current('home', true);
         return;
       }
@@ -678,6 +689,7 @@ export const SolarSystemCanvas: React.FC<SolarSystemCanvasProps> = ({
             targetProgressRef.current = idx;
           }
           isOverviewRef.current = false;
+          onExitOverviewRef.current?.();
           onSelectRef.current(pId, true);
         }
       }
@@ -697,7 +709,8 @@ export const SolarSystemCanvas: React.FC<SolarSystemCanvasProps> = ({
     // 11. Helper to calculate ideal camera viewpoint for any planet index
     // Ensures generous zoom-out distance so planets never overlap header or telemetry text
     const getPlanetCameraView = (index: number) => {
-      const planet = SOLAR_PLANETS[index] || SOLAR_PLANETS[0];
+      const normalizedIndex = ((index % SOLAR_PLANETS.length) + SOLAR_PLANETS.length) % SOLAR_PLANETS.length;
+      const planet = SOLAR_PLANETS[normalizedIndex] || SOLAR_PLANETS[0];
       const camPos = new THREE.Vector3();
       const lookTarget = new THREE.Vector3();
       const worldPos = new THREE.Vector3();
@@ -752,7 +765,7 @@ export const SolarSystemCanvas: React.FC<SolarSystemCanvasProps> = ({
 
     // Camera Flight Interpolation Variables
     const currentCameraPos = new THREE.Vector3().copy(camera.position);
-    const currentLookTarget = new THREE.Vector3(0, -4.5, 0);
+    const currentLookTarget = new THREE.Vector3(0, -4.8, 0);
 
     // 12. Animation Loop
     let animationFrameId: number;
@@ -786,12 +799,19 @@ export const SolarSystemCanvas: React.FC<SolarSystemCanvasProps> = ({
         (p.glowMesh.material as THREE.MeshBasicMaterial).opacity = isCurrentActive ? 0.55 : 0.2;
       });
 
+      // Wrap seamlessly from the last planet (Contact = 4) back to Home (0)
+      if (currentProgressRef.current >= SOLAR_PLANETS.length) {
+        currentProgressRef.current -= SOLAR_PLANETS.length;
+        targetProgressRef.current = Math.max(0, targetProgressRef.current - SOLAR_PLANETS.length);
+      }
+
       // Update continuous smooth progress
       currentProgressRef.current += (targetProgressRef.current - currentProgressRef.current) * 0.075;
       const progress = currentProgressRef.current;
 
-      // Determine nearest planet and notify UI
-      const nearestIdx = Math.max(0, Math.min(SOLAR_PLANETS.length - 1, Math.round(progress)));
+      // Determine nearest planet and notify UI (cycles 0 to 4)
+      const rawNearest = Math.round(progress);
+      const nearestIdx = rawNearest % SOLAR_PLANETS.length;
       const nearestPlanet = SOLAR_PLANETS[nearestIdx];
       if (nearestPlanet && nearestPlanet.id !== lastNotifiedPlanetId.current) {
         lastNotifiedPlanetId.current = nearestPlanet.id;
@@ -799,10 +819,10 @@ export const SolarSystemCanvas: React.FC<SolarSystemCanvasProps> = ({
         onActivePlanetChangeRef.current?.(nearestPlanet.id);
       }
 
-      // Continuous interpolation between adjacent planets
-      const indexA = Math.floor(progress);
-      const indexB = Math.min(SOLAR_PLANETS.length - 1, indexA + 1);
-      const fraction = progress - indexA;
+      // Continuous interpolation between adjacent planets (with cyclic wrap to index 0)
+      const indexA = Math.floor(progress) % SOLAR_PLANETS.length;
+      const indexB = (indexA + 1) % SOLAR_PLANETS.length;
+      const fraction = progress - Math.floor(progress);
       // Smooth cubic curve
       const ease = fraction * fraction * (3 - 2 * fraction);
 

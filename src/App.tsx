@@ -20,7 +20,7 @@ interface HoverInfo {
 
 export const App: React.FC = () => {
   const [activePlanetId, setActivePlanetId] = useState<string>('home');
-  const [isOverview, setIsOverview] = useState<boolean>(true); // Start in expansive solar system overview
+  const [isOverview, setIsOverview] = useState<boolean>(false); // Start facing home planet, completely smooth on load!
   const [hoverInfo, setHoverInfo] = useState<HoverInfo | null>(null);
   const [satellites, setSatellites] = useState<SatelliteScreenPosition[]>([]);
   const [isDetailsOpen, setIsDetailsOpen] = useState<boolean>(false);
@@ -40,6 +40,10 @@ export const App: React.FC = () => {
 
   const handleActivePlanetChange = useCallback((id: string) => {
     setActivePlanetId(id);
+  }, []);
+
+  const handleExitOverview = useCallback(() => {
+    setIsOverview(false);
   }, []);
 
   const handleToggleSound = () => {
@@ -62,6 +66,7 @@ export const App: React.FC = () => {
         onHoverPlanet={setHoverInfo}
         onUpdateSatellitePositions={setSatellites}
         onActivePlanetChange={handleActivePlanetChange}
+        onExitOverview={handleExitOverview}
         isDetailsOpen={isDetailsOpen}
       />
 
