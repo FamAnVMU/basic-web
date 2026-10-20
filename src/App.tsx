@@ -1,97 +1,67 @@
-import React, { useState, useEffect, useCallback } from 'react';
-import { SpaceCanvas } from './components/canvas/SpaceCanvas';
-import { Navbar } from './components/ui/Navbar';
-import { HudRadar } from './components/ui/HudRadar';
-import { HeroSection } from './components/sections/HeroSection';
-import { AboutSection } from './components/sections/AboutSection';
-import { SkillsSection } from './components/sections/SkillsSection';
-import { ProjectsSection } from './components/sections/ProjectsSection';
-import { JourneySection } from './components/sections/JourneySection';
-import { ContactSection } from './components/sections/ContactSection';
-import { Footer } from './components/ui/Footer';
+import React, { useState } from 'react';
+import { SOLAR_PLANETS } from './data/solarSystemData';
+import { SolarSystemCanvas } from './components/canvas/SolarSystemCanvas';
+import { SolarHeader } from './components/ui/SolarHeader';
+import { OrbitPlanetBadges } from './components/ui/OrbitPlanetBadges';
+import { PlanetDock } from './components/ui/PlanetDock';
+import { PlanetDetailModal } from './components/ui/PlanetDetailModal';
+import { soundManager } from './utils/soundEffects';
 
 export const App: React.FC = () => {
-  const [scrollProgress, setScrollProgress] = useState<number>(0);
-  const [currentSection, setCurrentSection] = useState<string>('hero');
+  const [activePlanetId, setActivePlanetId] = useState<string>('home');
+  const [isDetailsOpen, setIsDetailsOpen] = useState<boolean>(false);
+  const [isMuted, setIsMuted] = useState<boolean>(true);
 
-  const sectionIds = ['hero', 'about', 'skills', 'projects', 'journey', 'contact'];
+  const activePlanet =
+    SOLAR_PLANETS.find((p) => p.id === activePlanetId) || SOLAR_PLANETS[0];
 
-  // Track overall scroll progress for 3D camera interpolation
-  useEffect(() => {
-    let ticking = false;
+  const handleSelectPlanet = (id: string) => {
+    setActivePlanetId(id);
+    soundManager.playClick();
+  };
 
-    const handleScroll = () => {
-      if (!ticking) {
-        requestAnimationFrame(() => {
-          const totalHeight = document.documentElement.scrollHeight - window.innerHeight;
-          const currentScroll = window.scrollY;
-          const progress = totalHeight > 0 ? Math.min(Math.max(currentScroll / totalHeight, 0), 1) : 0;
-          setScrollProgress(progress);
-
-          // Determine active section based on scroll offset
-          const viewportMid = currentScroll + window.innerHeight * 0.4;
-          for (let i = sectionIds.length - 1; i >= 0; i--) {
-            const el = document.getElementById(sectionIds[i]);
-            if (el && el.offsetTop <= viewportMid) {
-              setCurrentSection(sectionIds[i]);
-              break;
-            }
-          }
-
-          ticking = false;
-        });
-        ticking = true;
-      }
-    };
-
-    window.addEventListener('scroll', handleScroll, { passive: true });
-    handleScroll();
-
-    return () => window.removeEventListener('scroll', handleScroll);
-  }, []);
-
-  const scrollToSection = useCallback((sectionId: string) => {
-    const el = document.getElementById(sectionId);
-    if (el) {
-      el.scrollIntoView({ behavior: 'smooth' });
-    }
-  }, []);
-
-  const currentSectionIndex = Math.max(sectionIds.indexOf(currentSection), 0);
+  const handleToggleSound = () => {
+    const nextState = soundManager.toggleMute();
+    setIsMuted(nextState);
+  };
 
   return (
-    <div className="relative min-h-screen bg-[#02040a] text-slate-100 selection:bg-cyan-500 selection:text-black overflow-x-hidden">
-      {/* 3D Deep Space WebGL Canvas */}
-      <SpaceCanvas
-        scrollProgress={scrollProgress}
-        currentSectionIndex={currentSectionIndex}
+    <div className="relative w-screen h-screen overflow-hidden bg-[#020612] text-slate-100 select-none">
+      {/* 3D Interactive Solar System Canvas */}
+      <SolarSystemCanvas
+        activePlanetId={activePlanetId}
+        onSelectPlanet={handleSelectPlanet}
       />
 
-      {/* Cyber HUD Navigation Bar */}
-      <Navbar
-        currentSection={currentSection}
-        onNavigate={scrollToSection}
+      {/* Top Header & Telemetry Data Row (matching reference screenshot) */}
+      <SolarHeader
+        activePlanet={activePlanet}
+        onSelectPlanet={handleSelectPlanet}
+        isMuted={isMuted}
+        onToggleSound={handleToggleSound}
+        onOpenDetails={() => setIsDetailsOpen(true)}
       />
 
-      {/* Space Radar & Orbital Coordinates HUD */}
-      <HudRadar
-        currentSection={currentSection}
-        scrollProgress={scrollProgress}
-        onNavigate={scrollToSection}
+      {/* Floating Orbital Labels (ETHERON / THERONIX style) */}
+      <OrbitPlanetBadges
+        activePlanetId={activePlanetId}
+        onSelectPlanet={handleSelectPlanet}
       />
 
-      {/* Main Cosmic Journey Narrative Content */}
-      <main className="relative z-10">
-        <HeroSection onExplore={scrollToSection} />
-        <AboutSection />
-        <SkillsSection />
-        <ProjectsSection />
-        <JourneySection />
-        <ContactSection />
-      </main>
+      {/* Bottom Floating Planet Selector Dock */}
+      <PlanetDock
+        activePlanetId={activePlanetId}
+        onSelectPlanet={handleSelectPlanet}
+      />
 
-      {/* Telemetry Footer */}
-      <Footer onBackToTop={() => scrollToSection('hero')} />
+      {/* Detailed Holographic Dossier Modal */}
+      {isDetailsOpen && (
+        <PlanetDetailModal
+          planet={activePlanet}
+          onClose={() => setIsDetailsOpen(false)}
+          onSelectPlanet={handleSelectPlanet}
+        />
+      )}
     </div>
   );
 };
