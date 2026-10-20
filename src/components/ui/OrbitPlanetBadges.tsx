@@ -4,7 +4,7 @@ import { soundManager } from '../../utils/soundEffects';
 
 interface OrbitPlanetBadgesProps {
   activePlanetId: string;
-  onSelectPlanet: (id: string) => void;
+  onSelectPlanet: (id: string, openDetails?: boolean) => void;
 }
 
 export const OrbitPlanetBadges: React.FC<OrbitPlanetBadgesProps> = ({
@@ -13,7 +13,7 @@ export const OrbitPlanetBadges: React.FC<OrbitPlanetBadgesProps> = ({
 }) => {
   const handleClick = (id: string) => {
     soundManager.playClick();
-    onSelectPlanet(id);
+    onSelectPlanet(id, true); // Opens information directly!
   };
 
   const vmuPlanet = SOLAR_PLANETS.find((p) => p.id === 'vmu');
@@ -26,7 +26,7 @@ export const OrbitPlanetBadges: React.FC<OrbitPlanetBadgesProps> = ({
         <button
           onClick={() => handleClick(vmuPlanet.id)}
           className="pointer-events-auto group flex items-center gap-3 transition-all transform hover:scale-105 cursor-pointer text-left"
-          title="Bấm để xem thông tin Đại học Hàng hải Việt Nam"
+          title="Bấm vào hành tinh để xem thông tin ĐH Hàng Hải"
         >
           <div
             className={`w-7 h-7 sm:w-9 sm:h-9 rounded-full border-2 transition-all flex items-center justify-center ${
@@ -53,7 +53,7 @@ export const OrbitPlanetBadges: React.FC<OrbitPlanetBadgesProps> = ({
         <button
           onClick={() => handleClick(knowledgePlanet.id)}
           className="pointer-events-auto group flex items-center gap-3 transition-all transform hover:scale-105 cursor-pointer text-right flex-row-reverse"
-          title="Bấm để xem kiến thức nền tảng đã học"
+          title="Bấm vào hành tinh để xem thông tin kiến thức đã học"
         >
           <div
             className={`w-7 h-7 sm:w-9 sm:h-9 rounded-full border-2 transition-all flex items-center justify-center ${

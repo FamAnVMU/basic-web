@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { SOLAR_PLANETS } from './data/solarSystemData';
 import { SolarSystemCanvas } from './components/canvas/SolarSystemCanvas';
 import type { SatelliteScreenPosition } from './components/canvas/SolarSystemCanvas';
@@ -20,7 +20,7 @@ interface HoverInfo {
 
 export const App: React.FC = () => {
   const [activePlanetId, setActivePlanetId] = useState<string>('home');
-  const [isOverview, setIsOverview] = useState<boolean>(true); // Start in expansive solar system overview!
+  const [isOverview, setIsOverview] = useState<boolean>(true); // Start in expansive solar system overview
   const [hoverInfo, setHoverInfo] = useState<HoverInfo | null>(null);
   const [satellites, setSatellites] = useState<SatelliteScreenPosition[]>([]);
   const [isDetailsOpen, setIsDetailsOpen] = useState<boolean>(false);
@@ -29,10 +29,13 @@ export const App: React.FC = () => {
   const activePlanet =
     SOLAR_PLANETS.find((p) => p.id === activePlanetId) || SOLAR_PLANETS[0];
 
-  const handleSelectPlanet = (id: string) => {
+  const handleSelectPlanet = (id: string, openDetails: boolean = false) => {
     setActivePlanetId(id);
-    setIsOverview(false); // Zoom into the selected planet!
+    setIsOverview(false); // Zoom into the selected planet
     soundManager.playWarp();
+    if (openDetails) {
+      setIsDetailsOpen(true);
+    }
   };
 
   const handleToggleSound = () => {
@@ -44,6 +47,75 @@ export const App: React.FC = () => {
     soundManager.playClick();
     setIsOverview((prev) => !prev);
   };
+
+  // Scroll to transition between planets (mouse wheel & mobile touch swipe)
+  useEffect(() => {
+    let lastScrollTime = 0;
+
+    const handleWheel = (e: WheelEvent) => {
+      // If modal is open, do not hijack scrolling
+      if (isDetailsOpen) return;
+
+      const now = Date.now();
+      if (now - lastScrollTime < 550) return; // Cooldown for smooth single step
+
+      if (Math.abs(e.deltaY) > 20) {
+        lastScrollTime = now;
+        const currentIndex = SOLAR_PLANETS.findIndex((p) => p.id === activePlanetId);
+
+        if (e.deltaY > 0) {
+          // Scroll down -> next planet
+          const nextIndex = (currentIndex + 1) % SOLAR_PLANETS.length;
+          handleSelectPlanet(SOLAR_PLANETS[nextIndex].id, false);
+        } else {
+          // Scroll up -> previous planet
+          const prevIndex = (currentIndex - 1 + SOLAR_PLANETS.length) % SOLAR_PLANETS.length;
+          handleSelectPlanet(SOLAR_PLANETS[prevIndex].id, false);
+        }
+      }
+    };
+
+    let touchStartY = 0;
+
+    const handleTouchStart = (e: TouchEvent) => {
+      if (isDetailsOpen) return;
+      touchStartY = e.touches[0].clientY;
+    };
+
+    const handleTouchEnd = (e: TouchEvent) => {
+      if (isDetailsOpen) return;
+      const touchEndY = e.changedTouches[0].clientY;
+      const diffY = touchStartY - touchEndY;
+
+      const now = Date.now();
+      if (now - lastScrollTime < 550) return;
+
+      if (Math.abs(diffY) > 40) {
+        lastScrollTime = now;
+        const currentIndex = SOLAR_PLANETS.findIndex((p) => p.id === activePlanetId);
+
+        if (diffY > 0) {
+          // Swipe up -> next planet
+          const nextIndex = (currentIndex + 1) % SOLAR_PLANETS.length;
+          handleSelectPlanet(SOLAR_PLANETS[nextIndex].id, false);
+        } else {
+          // Swipe down -> previous planet
+          const prevIndex = (currentIndex - 1 + SOLAR_PLANETS.length) % SOLAR_PLANETS.length;
+          handleSelectPlanet(SOLAR_PLANETS[prevIndex].id, false);
+        }
+      }
+    };
+
+    window.addEventListener('wheel', handleWheel, { passive: true });
+    window.addEventListener('touchstart', handleTouchStart, { passive: true });
+    window.addEventListener('touchend', handleTouchEnd, { passive: true });
+
+    return () => {
+      window.removeEventListener('wheel', handleWheel);
+      window.removeEventListener('touchstart', handleTouchStart);
+      window.removeEventListener('touchend', handleTouchEnd);
+    };
+  }, [activePlanetId, isDetailsOpen]);
 
   return (
     <div className="relative w-screen h-screen overflow-hidden bg-[#020612] text-slate-100 select-none">
@@ -70,7 +142,7 @@ export const App: React.FC = () => {
       {/* Top Header & Telemetry Data Row (matching reference screenshot) */}
       <SolarHeader
         activePlanet={activePlanet}
-        onSelectPlanet={handleSelectPlanet}
+        onSelectPlanet={(id) => handleSelectPlanet(id, true)}
         isMuted={isMuted}
         onToggleSound={handleToggleSound}
         onOpenDetails={() => setIsDetailsOpen(true)}
@@ -81,21 +153,21 @@ export const App: React.FC = () => {
       {/* Floating Orbital Labels (ETHERON / THERONIX style) */}
       <OrbitPlanetBadges
         activePlanetId={activePlanetId}
-        onSelectPlanet={handleSelectPlanet}
+        onSelectPlanet={(id) => handleSelectPlanet(id, true)}
       />
 
       {/* Bottom Floating Planet Selector Dock */}
       <PlanetDock
         activePlanetId={activePlanetId}
-        onSelectPlanet={handleSelectPlanet}
+        onSelectPlanet={(id) => handleSelectPlanet(id, true)}
       />
 
-      {/* Detailed Holographic Dossier Modal */}
+      {/* Detailed Holographic Dossier Modal (Directly triggered when clicking any planet) */}
       {isDetailsOpen && (
         <PlanetDetailModal
           planet={activePlanet}
           onClose={() => setIsDetailsOpen(false)}
-          onSelectPlanet={handleSelectPlanet}
+          onSelectPlanet={(id) => handleSelectPlanet(id, true)}
         />
       )}
     </div>

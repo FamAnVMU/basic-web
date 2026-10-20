@@ -88,18 +88,32 @@ export const PlanetDetailModal: React.FC<PlanetDetailModalProps> = ({
             <div className="w-28 h-28 sm:w-32 sm:h-32 rounded-2xl overflow-hidden border-2 border-cyan-400/50 shadow-[0_0_20px_rgba(0,243,255,0.3)] shrink-0">
               <img
                 src="/avatar.jpg"
-                alt="Phạm An - Sinh viên CNTT Đại học Hàng hải Việt Nam"
+                alt="Phạm An - Sinh viên CNTT K65 Đại học Hàng hải Việt Nam"
                 className="w-full h-full object-cover object-center"
               />
             </div>
-            <div className="space-y-1.5 text-center sm:text-left">
-              <h3 className="text-lg font-bold font-orbitron text-white">PHẠM AN</h3>
+            <div className="space-y-2 text-center sm:text-left flex-1">
+              <div className="flex flex-wrap items-center justify-center sm:justify-start gap-2">
+                <h3 className="text-lg font-bold font-orbitron text-white">PHẠM AN</h3>
+                <span className="px-2 py-0.5 rounded text-[10px] font-mono-code bg-cyan-500/20 text-cyan-300 border border-cyan-400/40">
+                  SINH VIÊN K65 CNTT
+                </span>
+              </div>
               <div className="text-xs font-mono-code text-cyan-300">
-                Khoa Công Nghệ Thông Tin • ĐH Hàng Hải Việt Nam
+                Khoa Công Nghệ Thông Tin • Trường ĐH Hàng Hải Việt Nam
               </div>
               <p className="text-xs text-slate-300 leading-relaxed">
-                Sinh viên đầu năm 3, định hướng học tập nghiêm túc, rèn luyện tư duy lập trình và tìm kiếm cơ hội thực tập cọ xát thực tế.
+                Sinh viên đầu năm 3 (K65), định hướng học tập nghiêm túc, rèn luyện tư duy lập trình và tìm kiếm cơ hội thực tập cọ xát thực tế.
               </p>
+              {/* Email & GitHub Quick Badges */}
+              <div className="flex flex-wrap gap-2 pt-1 text-[11px] font-mono-code">
+                <span className="px-2.5 py-1 rounded-lg bg-cyan-950/60 border border-cyan-500/30 text-cyan-300">
+                  ✉️ phama6372@gmail.com
+                </span>
+                <span className="px-2.5 py-1 rounded-lg bg-cyan-950/60 border border-cyan-500/30 text-slate-200">
+                  🐱 github.com/FamAnVMU
+                </span>
+              </div>
             </div>
           </div>
         )}

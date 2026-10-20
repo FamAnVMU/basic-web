@@ -37,8 +37,8 @@ export const PlanetHoverTooltip: React.FC<PlanetHoverTooltipProps> = ({ hoverInf
           {hoverInfo.subtitle}
         </div>
 
-        <div className="mt-1 pt-1 border-t border-cyan-500/20 text-[9px] font-mono-code text-cyan-300/80">
-          ● Nhấp chuột để chuyển góc nhìn
+        <div className="mt-1 pt-1 border-t border-cyan-500/20 text-[9px] font-mono-code text-cyan-300">
+          ● Bấm vào hành tinh để xem toàn bộ thông tin
         </div>
 
         {/* Pointer Triangle */}

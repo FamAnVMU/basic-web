@@ -21,7 +21,7 @@ export interface SatelliteScreenPosition {
 interface SolarSystemCanvasProps {
   activePlanetId: string;
   isOverview: boolean;
-  onSelectPlanet: (planetId: string) => void;
+  onSelectPlanet: (planetId: string, openDetails?: boolean) => void;
   onHoverPlanet: (info: HoverInfo | null) => void;
   onUpdateSatellitePositions: (positions: SatelliteScreenPosition[]) => void;
 }
@@ -587,7 +587,7 @@ export const SolarSystemCanvas: React.FC<SolarSystemCanvasProps> = ({
 
       const mainIntersect = raycaster.intersectObject(mainMesh);
       if (mainIntersect.length > 0) {
-        onSelectRef.current('home');
+        onSelectRef.current('home', true);
         return;
       }
 
@@ -597,7 +597,7 @@ export const SolarSystemCanvas: React.FC<SolarSystemCanvasProps> = ({
       if (intersects.length > 0) {
         const pId = intersects[0].object.userData.planetId;
         if (pId) {
-          onSelectRef.current(pId);
+          onSelectRef.current(pId, true);
         }
       }
     };
