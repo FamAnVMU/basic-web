@@ -5,19 +5,25 @@ import { FacebookIcon, GithubIcon, DiscordIcon } from './Icons';
 import { ConstellationCanvas } from './ConstellationCanvas';
 import confetti from 'canvas-confetti';
 import { soundManager } from '../../utils/soundEffects';
+import { TRANSLATIONS } from '../../data/translations';
+import type { Language } from '../../data/translations';
 
 interface PlanetDetailModalProps {
   planet: PlanetData;
   onClose: () => void;
   onSelectPlanet: (id: string) => void;
+  currentLang?: Language;
 }
 
 export const PlanetDetailModal: React.FC<PlanetDetailModalProps> = ({
   planet,
   onClose,
+  currentLang = 'vi',
 }) => {
   const [copiedKey, setCopiedKey] = useState<string | null>(null);
   const [mousePos, setMousePos] = useState<{ x: number; y: number } | null>(null);
+
+  const t = TRANSLATIONS[currentLang].modal;
 
   const handleCopy = (text: string, key: string) => {
     soundManager.playClick();
@@ -73,7 +79,7 @@ export const PlanetDetailModal: React.FC<PlanetDetailModalProps> = ({
     <div
       onClick={onClose}
       className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md animate-in fade-in duration-200 cursor-pointer"
-      title="Bấm vào khoảng trống để đóng cửa sổ"
+      title={t.closeHint}
     >
       <div
         onClick={(e) => e.stopPropagation()}
@@ -89,8 +95,8 @@ export const PlanetDetailModal: React.FC<PlanetDetailModalProps> = ({
         <button
           onClick={onClose}
           className="absolute top-5 right-5 p-2 rounded-xl bg-slate-900/90 border border-cyan-500/40 text-cyan-400 hover:bg-cyan-950/80 hover:border-cyan-300 hover:text-white transition-all cursor-pointer z-20 shadow-[0_0_15px_rgba(0,243,255,0.2)]"
-          aria-label="Đóng cửa sổ"
-          title="Đóng cửa sổ (Hoặc bấm vào khoảng trống bên ngoài)"
+          aria-label={t.closeWindow}
+          title={t.closeHint}
         >
           <X className="w-5 h-5" />
         </button>
@@ -103,7 +109,7 @@ export const PlanetDetailModal: React.FC<PlanetDetailModalProps> = ({
             </div>
             <div>
               <div className="text-[10px] font-mono-code text-cyan-400 tracking-widest uppercase">
-                THÔNG TIN HÀNH TINH
+                {t.planetInfo}
               </div>
               <h2 className="text-xl sm:text-2xl font-bold font-orbitron text-white">
                 {planet.name}
@@ -125,14 +131,14 @@ export const PlanetDetailModal: React.FC<PlanetDetailModalProps> = ({
               <div className="flex flex-wrap items-center justify-center sm:justify-start gap-2">
                 <h3 className="text-lg font-bold font-orbitron text-white">PHẠM AN</h3>
                 <span className="px-2 py-0.5 rounded text-[10px] font-mono-code bg-cyan-500/20 text-cyan-300 border border-cyan-400/40">
-                  SINH VIÊN K65 CNTT
+                  {t.studentBadge}
                 </span>
               </div>
               <div className="text-xs font-mono-code text-cyan-300">
-                Khoa Công Nghệ Thông Tin • Trường ĐH Hàng Hải Việt Nam
+                {t.faculty}
               </div>
               <p className="text-xs text-slate-300 leading-relaxed">
-                Sinh viên đầu năm 3 (K65), định hướng học tập nghiêm túc, rèn luyện tư duy lập trình và tìm kiếm cơ hội thực tập cọ xát thực tế.
+                {t.bio}
               </p>
             </div>
           </div>
@@ -147,7 +153,7 @@ export const PlanetDetailModal: React.FC<PlanetDetailModalProps> = ({
           {/* Highlights */}
           <div className="space-y-2 pt-2">
             <div className="text-[11px] font-mono-code text-cyan-400 uppercase tracking-wider">
-              ĐIỂM NỔI BẬT:
+              {t.highlights}
             </div>
             {planet.highlights.map((item, idx) => (
               <div key={idx} className="flex items-start gap-2.5 text-xs text-slate-300">
@@ -161,7 +167,7 @@ export const PlanetDetailModal: React.FC<PlanetDetailModalProps> = ({
         {/* Contact Links Box (For Contact Planet or Quick Connection) */}
         <div className="pt-4 border-t border-cyan-500/20">
           <div className="text-[11px] font-mono-code text-slate-400 uppercase tracking-wider mb-3">
-            KÊNH LIÊN LẠC CHÍNH THỨC CỦA PHẠM AN:
+            {t.officialChannels}
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
@@ -221,7 +227,7 @@ export const PlanetDetailModal: React.FC<PlanetDetailModalProps> = ({
               <button
                 onClick={() => handleCopy('phama6372@gmail.com', 'email')}
                 className="p-1.5 rounded-lg bg-cyan-500/10 hover:bg-cyan-500/25 text-cyan-300 transition-colors cursor-pointer"
-                title="Sao chép email"
+                title={t.copyEmail}
               >
                 {copiedKey === 'email' ? <Check className="w-3.5 h-3.5 text-emerald-400" /> : <Copy className="w-3.5 h-3.5" />}
               </button>

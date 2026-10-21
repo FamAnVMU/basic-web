@@ -1,18 +1,23 @@
 import React from 'react';
-import { SOLAR_PLANETS } from '../../data/solarSystemData';
+import type { PlanetData } from '../../data/solarSystemData';
+import type { Language } from '../../data/translations';
+import { TRANSLATIONS } from '../../data/translations';
 import { soundManager } from '../../utils/soundEffects';
 
 interface PlanetDockProps {
+  planets: PlanetData[];
   activePlanetId: string;
   onSelectPlanet: (id: string, openDetails?: boolean) => void;
+  currentLang?: Language;
 }
 
 export const PlanetDock: React.FC<PlanetDockProps> = ({
+  planets,
   activePlanetId,
   onSelectPlanet,
+  currentLang = 'vi',
 }) => {
-  const activeIdx = Math.max(0, SOLAR_PLANETS.findIndex((p) => p.id === activePlanetId));
-  const progressPercent = (activeIdx / (SOLAR_PLANETS.length - 1)) * 100;
+  const t = TRANSLATIONS[currentLang];
 
   const handleClick = (e: React.MouseEvent, id: string) => {
     e.stopPropagation();
@@ -28,22 +33,15 @@ export const PlanetDock: React.FC<PlanetDockProps> = ({
     >
       {/* Scroll Navigation Hint */}
       <div className="text-[9px] font-mono-code text-cyan-400/80 tracking-widest uppercase">
-        CUỘN CHUỘT ĐỂ CHUYỂN DẦN HÀNH TINH • BẤM ĐỂ CHUYỂN NHANH
+        {t.dock.scrollHint}
       </div>
 
       <div
         onClick={(e) => e.stopPropagation()}
         onPointerDown={(e) => e.stopPropagation()}
-        className="pointer-events-auto relative p-1.5 sm:p-2 rounded-2xl bg-[#020612]/85 backdrop-blur-xl border border-cyan-500/25 flex items-center gap-1 sm:gap-2 shadow-[0_8px_32px_rgba(0,0,0,0.7)] overflow-hidden"
+        className="pointer-events-auto relative p-1.5 sm:p-2 rounded-2xl bg-[#020612]/85 backdrop-blur-xl border border-cyan-500/25 flex items-center gap-1 sm:gap-2 shadow-[0_8px_32px_rgba(0,0,0,0.7)]"
       >
-        {/* Subtle Travel Track */}
-        <div className="absolute top-0 inset-x-0 h-[2px] bg-cyan-950/50">
-          <div
-            className="h-full bg-gradient-to-r from-cyan-500 via-sky-400 to-cyan-300 transition-all duration-300 ease-out shadow-[0_0_8px_#00f3ff]"
-            style={{ width: `${Math.max(10, progressPercent)}%` }}
-          />
-        </div>
-        {SOLAR_PLANETS.map((planet) => {
+        {planets.map((planet) => {
           const isActive = activePlanetId === planet.id;
 
           return (

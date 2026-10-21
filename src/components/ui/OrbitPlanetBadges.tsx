@@ -2,18 +2,26 @@ import React from 'react';
 import { SOLAR_PLANETS } from '../../data/solarSystemData';
 import type { PlanetData } from '../../data/solarSystemData';
 import { soundManager } from '../../utils/soundEffects';
+import { TRANSLATIONS } from '../../data/translations';
+import type { Language } from '../../data/translations';
 
 interface OrbitPlanetBadgesProps {
   activePlanetId: string;
   onSelectPlanet: (id: string, openDetails?: boolean) => void;
+  planets?: PlanetData[];
+  currentLang?: Language;
 }
 
 export const OrbitPlanetBadges: React.FC<OrbitPlanetBadgesProps> = ({
   activePlanetId,
   onSelectPlanet,
+  planets = SOLAR_PLANETS,
+  currentLang = 'vi',
 }) => {
   const activePlanet =
-    SOLAR_PLANETS.find((p) => p.id === activePlanetId) || SOLAR_PLANETS[0];
+    planets.find((p) => p.id === activePlanetId) || planets[0];
+
+  const t = TRANSLATIONS[currentLang].badges;
 
   const handleClick = (e: React.MouseEvent) => {
     e.stopPropagation();
@@ -25,28 +33,28 @@ export const OrbitPlanetBadges: React.FC<OrbitPlanetBadgesProps> = ({
     switch (planet.id) {
       case 'home':
         return {
-          title: 'PHAM AN',
-          subtitle: 'HÀNH TINH TRUNG TÂM',
+          title: t.homeTitle,
+          subtitle: t.homeSub,
         };
       case 'vmu':
         return {
-          title: 'VMU ORBIT',
-          subtitle: 'ĐẠI HỌC HÀNG HẢI',
+          title: t.vmuTitle,
+          subtitle: t.vmuSub,
         };
       case 'knowledge':
         return {
-          title: 'KNOWLEDGE',
-          subtitle: 'KIẾN THỨC NỀN TẢNG',
+          title: t.knowledgeTitle,
+          subtitle: t.knowledgeSub,
         };
       case 'goals':
         return {
-          title: 'FUTURE GOALS',
-          subtitle: 'MỤC TIÊU NĂM 3',
+          title: t.goalsTitle,
+          subtitle: t.goalsSub,
         };
       case 'contact':
         return {
-          title: 'CONNECTION',
-          subtitle: 'LIÊN HỆ & KẾT NỐI',
+          title: t.contactTitle,
+          subtitle: t.contactSub,
         };
       default:
         return {
@@ -64,7 +72,7 @@ export const OrbitPlanetBadges: React.FC<OrbitPlanetBadgesProps> = ({
       <button
         onClick={handleClick}
         className="pointer-events-auto group flex items-center gap-3 sm:gap-3.5 transition-all duration-500 transform hover:scale-105 cursor-pointer text-left"
-        title={`Đang tại hành tinh ${activePlanet.name}. Bấm để xem thông tin chi tiết.`}
+        title={t.badgeHint.replace('{name}', activePlanet.name)}
       >
         {/* Dynamic Glowing Orbit Dot */}
         <div

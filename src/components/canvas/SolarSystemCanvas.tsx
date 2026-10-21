@@ -1,7 +1,7 @@
 import React, { useEffect, useRef } from 'react';
 import * as THREE from 'three';
 import { SOLAR_PLANETS } from '../../data/solarSystemData';
-import type { PlanetSatellite } from '../../data/solarSystemData';
+import type { PlanetData, PlanetSatellite } from '../../data/solarSystemData';
 
 interface HoverInfo {
   id: string;
@@ -33,6 +33,7 @@ interface SolarSystemCanvasProps {
   onActivePlanetChange?: (planetId: string) => void;
   onExitOverview?: () => void;
   isDetailsOpen: boolean;
+  planets?: PlanetData[];
 }
 
 export const SolarSystemCanvas: React.FC<SolarSystemCanvasProps> = ({
@@ -45,10 +46,14 @@ export const SolarSystemCanvas: React.FC<SolarSystemCanvasProps> = ({
   onActivePlanetChange,
   onExitOverview,
   isDetailsOpen,
+  planets = SOLAR_PLANETS,
 }) => {
   const containerRef = useRef<HTMLDivElement>(null);
   const activePlanetRef = useRef<string>(activePlanetId);
   activePlanetRef.current = activePlanetId;
+
+  const planetsRef = useRef<PlanetData[]>(planets);
+  planetsRef.current = planets;
 
   const isOverviewRef = useRef<boolean>(isOverview);
   isOverviewRef.current = isOverview;
@@ -72,7 +77,7 @@ export const SolarSystemCanvas: React.FC<SolarSystemCanvasProps> = ({
   onExitOverviewRef.current = onExitOverview;
 
   const targetProgressRef = useRef<number>(
-    Math.max(0, SOLAR_PLANETS.findIndex((p) => p.id === activePlanetId))
+    Math.max(0, planets.findIndex((p) => p.id === activePlanetId))
   );
   const currentProgressRef = useRef<number>(targetProgressRef.current);
   const lastNotifiedPlanetId = useRef<string>(activePlanetId);
@@ -83,7 +88,7 @@ export const SolarSystemCanvas: React.FC<SolarSystemCanvasProps> = ({
   // Sync target progress whenever navTarget changes from UI clicks (dock / nav / badges / meshes)
   useEffect(() => {
     if (!navTarget) return;
-    const idx = SOLAR_PLANETS.findIndex((p) => p.id === navTarget.id);
+    const idx = planetsRef.current.findIndex((p) => p.id === navTarget.id);
     if (idx !== -1) {
       isProgrammaticNavRef.current = true;
       lastNotifiedPlanetId.current = navTarget.id;
@@ -594,10 +599,11 @@ export const SolarSystemCanvas: React.FC<SolarSystemCanvasProps> = ({
         const x = (tempV.x * 0.5 + 0.5) * window.innerWidth;
         const y = (-(tempV.y * 0.5) + 0.5) * window.innerHeight;
 
+        const homePlanet = planetsRef.current.find((p) => p.id === 'home') || planetsRef.current[0];
         onHoverRef.current({
           id: 'home',
-          name: 'Phạm An (FamAnVMU)',
-          subtitle: 'Hành tinh Trung tâm // Sinh viên năm 3 CNTT ĐH Hàng Hải',
+          name: homePlanet.name,
+          subtitle: homePlanet.subtitle,
           x,
           y,
         });
@@ -611,7 +617,7 @@ export const SolarSystemCanvas: React.FC<SolarSystemCanvasProps> = ({
       if (intersects.length > 0) {
         document.body.style.cursor = 'pointer';
         const pId = intersects[0].object.userData.planetId;
-        const planetData = SOLAR_PLANETS.find((p) => p.id === pId);
+        const planetData = planetsRef.current.find((p) => p.id === pId);
 
         if (planetData) {
           const tempV = new THREE.Vector3();
@@ -667,7 +673,7 @@ export const SolarSystemCanvas: React.FC<SolarSystemCanvasProps> = ({
       // Allow timeline to reach past last planet (Contact = 4) towards 5.0 to loop back to Home (0.0)
       targetProgressRef.current = Math.max(
         0,
-        Math.min(SOLAR_PLANETS.length + 0.3, targetProgressRef.current + progressChange)
+        Math.min(planetsRef.current.length + 0.3, targetProgressRef.current + progressChange)
       );
     };
 
@@ -700,7 +706,7 @@ export const SolarSystemCanvas: React.FC<SolarSystemCanvasProps> = ({
 
       targetProgressRef.current = Math.max(
         0,
-        Math.min(SOLAR_PLANETS.length + 0.3, targetProgressRef.current + progressChange)
+        Math.min(planetsRef.current.length + 0.3, targetProgressRef.current + progressChange)
       );
     };
 
@@ -741,7 +747,7 @@ export const SolarSystemCanvas: React.FC<SolarSystemCanvasProps> = ({
       if (intersects.length > 0) {
         const pId = intersects[0].object.userData.planetId;
         if (pId) {
-          const idx = SOLAR_PLANETS.findIndex((p) => p.id === pId);
+          const idx = planetsRef.current.findIndex((p) => p.id === pId);
           if (idx !== -1) {
             const isAlreadyActive = activePlanetRef.current === pId;
             if (isAlreadyActive) {
@@ -773,8 +779,8 @@ export const SolarSystemCanvas: React.FC<SolarSystemCanvasProps> = ({
     // 11. Helper to calculate ideal camera viewpoint for any planet index
     // Ensures generous zoom-out distance so planets never overlap header or telemetry text
     const getPlanetCameraView = (index: number) => {
-      const normalizedIndex = ((index % SOLAR_PLANETS.length) + SOLAR_PLANETS.length) % SOLAR_PLANETS.length;
-      const planet = SOLAR_PLANETS[normalizedIndex] || SOLAR_PLANETS[0];
+      const normalizedIndex = ((index % planetsRef.current.length) + planetsRef.current.length) % planetsRef.current.length;
+      const planet = planetsRef.current[normalizedIndex] || planetsRef.current[0];
       const camPos = new THREE.Vector3();
       const lookTarget = new THREE.Vector3();
       const worldPos = new THREE.Vector3();
@@ -891,9 +897,9 @@ export const SolarSystemCanvas: React.FC<SolarSystemCanvasProps> = ({
       });
 
       // Wrap seamlessly from the last planet (Contact = 4) back to Home (0)
-      if (currentProgressRef.current >= SOLAR_PLANETS.length) {
-        currentProgressRef.current -= SOLAR_PLANETS.length;
-        targetProgressRef.current = Math.max(0, targetProgressRef.current - SOLAR_PLANETS.length);
+      if (currentProgressRef.current >= planetsRef.current.length) {
+        currentProgressRef.current -= planetsRef.current.length;
+        targetProgressRef.current = Math.max(0, targetProgressRef.current - planetsRef.current.length);
       }
 
       // Update continuous smooth progress
@@ -902,16 +908,16 @@ export const SolarSystemCanvas: React.FC<SolarSystemCanvasProps> = ({
 
       // Determine nearest planet (cycles 0 to 4)
       const rawNearest = Math.round(progress);
-      const nearestIdx = rawNearest % SOLAR_PLANETS.length;
-      const nearestPlanet = SOLAR_PLANETS[nearestIdx];
+      const nearestIdx = rawNearest % planetsRef.current.length;
+      const nearestPlanet = planetsRef.current[nearestIdx];
 
       // Handle programmatic navigation vs free scroll
       if (isProgrammaticNavRef.current) {
         // If close enough to destination, complete programmatic arrival
         if (Math.abs(currentProgressRef.current - targetProgressRef.current) < 0.04) {
           currentProgressRef.current = targetProgressRef.current;
-          if (currentProgressRef.current >= SOLAR_PLANETS.length) {
-            currentProgressRef.current -= SOLAR_PLANETS.length;
+          if (currentProgressRef.current >= planetsRef.current.length) {
+            currentProgressRef.current -= planetsRef.current.length;
             targetProgressRef.current = 0;
           }
           isProgrammaticNavRef.current = false;
@@ -954,8 +960,8 @@ export const SolarSystemCanvas: React.FC<SolarSystemCanvasProps> = ({
         }
       } else {
         // Continuous interpolation between adjacent planets (with cyclic wrap to index 0)
-        const indexA = Math.floor(progress) % SOLAR_PLANETS.length;
-        const indexB = (indexA + 1) % SOLAR_PLANETS.length;
+        const indexA = Math.floor(progress) % planetsRef.current.length;
+        const indexB = (indexA + 1) % planetsRef.current.length;
         const fraction = progress - Math.floor(progress);
         // Smooth cubic curve
         const ease = fraction * fraction * (3 - 2 * fraction);
@@ -988,7 +994,7 @@ export const SolarSystemCanvas: React.FC<SolarSystemCanvasProps> = ({
       }
 
       // 14. Update Orbiting Satellites Around the Focused Planet
-      const activePlanetData = SOLAR_PLANETS[nearestIdx] || SOLAR_PLANETS[0];
+      const activePlanetData = planetsRef.current[nearestIdx] || planetsRef.current[0];
       const nearestView = getPlanetCameraView(nearestIdx);
       const activeWorldPos = nearestView.worldPos;
       const activeSize = nearestView.size;

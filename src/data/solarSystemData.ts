@@ -1,3 +1,5 @@
+import type { Language } from './translations';
+
 export interface PlanetTelemetry {
   label: string;
   value: string;
@@ -33,7 +35,7 @@ export interface PlanetData {
   satellites: PlanetSatellite[];
 }
 
-export const SOLAR_PLANETS: PlanetData[] = [
+export const SOLAR_PLANETS_VI: PlanetData[] = [
   {
     id: 'home',
     name: 'Phạm An',
@@ -340,3 +342,317 @@ export const SOLAR_PLANETS: PlanetData[] = [
     ],
   },
 ];
+
+export const SOLAR_PLANETS_EN: PlanetData[] = [
+  {
+    id: 'home',
+    name: 'Pham An',
+    displayTitle: 'P H A M   A N',
+    subtitle: '3rd Year IT Student (K65) // Faculty of Information Technology - Vietnam Maritime University',
+    navLabel: 'Home',
+    category: 'core',
+    color: '#00d2ff',
+    glowColor: '#00f3ff',
+    size: 5.8,
+    orbitRadius: 0,
+    orbitSpeed: 0,
+    textureType: 'earth',
+    telemetry: [
+      { label: 'FULL NAME', value: 'Pham An (K65)' },
+      { label: 'UNIVERSITY', value: 'Vietnam Maritime Univ' },
+      { label: 'MAJOR', value: 'Information Technology' },
+      { label: 'EMAIL', value: 'phama6372@gmail.com' },
+      { label: 'GITHUB', value: 'github.com/FamAnVMU' },
+    ],
+    description:
+      'Hello! I am Pham An, a 3rd-year undergraduate (Cohort K65) majoring in Information Technology at Vietnam Maritime University (VMU). I do not have corporate enterprise experience yet; this personal space portfolio was created to share my academic progress and connect with mentors, peers, and recruiters.',
+    highlights: [
+      'Regular undergraduate student Cohort K65, Faculty of Information Technology - VMU',
+      'Solidifying core computer science foundations and algorithmic problem-solving',
+      'Straightforward, honest, growth-minded, and eager to learn',
+      'Proactively exploring modern software engineering and web technologies',
+    ],
+    satellites: [
+      {
+        id: 'sat-home-vmu',
+        title: 'K65 IT Student',
+        subtitle: 'Faculty of IT - VMU',
+        detail: 'Enrolled in the official Software Engineering & IT curriculum for Cohort K65 at Vietnam Maritime University.',
+        iconType: 'vmu',
+      },
+      {
+        id: 'sat-home-email',
+        title: 'Personal Email',
+        subtitle: 'phama6372@gmail.com',
+        detail: 'Official contact mailbox: phama6372@gmail.com (Click to copy).',
+        iconType: 'email',
+        link: 'mailto:phama6372@gmail.com',
+        action: 'copy',
+      },
+      {
+        id: 'sat-home-github',
+        title: 'GitHub Profile',
+        subtitle: 'github.com/FamAnVMU',
+        detail: 'Personal GitHub repository storing programming assignments: github.com/FamAnVMU.',
+        iconType: 'github',
+        link: 'https://github.com/FamAnVMU',
+        action: 'link',
+      },
+      {
+        id: 'sat-home-location',
+        title: 'Hai Phong, VN',
+        subtitle: 'Study Coordinate',
+        detail: 'Living and studying in the port city of Hai Phong - a dynamic maritime and economic center.',
+        iconType: 'info',
+      },
+    ],
+  },
+  {
+    id: 'vmu',
+    name: 'Maritime Univ',
+    displayTitle: 'V M U   O R B I T',
+    subtitle: 'Academic Environment // Vietnam Maritime University (VMU - Hai Phong)',
+    navLabel: 'Education (VMU)',
+    category: 'education',
+    color: '#f59e0b',
+    glowColor: '#fbbf24',
+    size: 2.2,
+    orbitRadius: 13.5,
+    orbitSpeed: 0.18,
+    textureType: 'gold',
+    telemetry: [
+      { label: 'UNIVERSITY', value: 'Vietnam Maritime Univ' },
+      { label: 'FACULTY', value: 'Information Technology' },
+      { label: 'COHORT', value: 'Cohort K65 (Year 3)' },
+      { label: 'DEGREE', value: 'Engineer Degree' },
+      { label: 'MAIN CAMPUS', value: 'Lach Tray, Hai Phong' },
+    ],
+    description:
+      'Vietnam Maritime University (VMU) is a prestigious national university with a proud heritage in Hai Phong. The maritime academic environment has cultivated my discipline, resilience, and high sense of responsibility in studies and life.',
+    highlights: [
+      'Completed 2 foundational years of general science and core engineering subjects',
+      'Currently embarking on specialized 3rd-year courses for Cohort K65',
+      'Actively completing theoretical coursework and classroom coding labs',
+    ],
+    satellites: [
+      {
+        id: 'sat-vmu-history',
+        title: 'Ocean Heritage',
+        subtitle: 'Founded 1956',
+        detail: 'National key university and premier human resource training institution.',
+        iconType: 'vmu',
+      },
+      {
+        id: 'sat-vmu-faculty',
+        title: 'Faculty of IT - VMU',
+        subtitle: 'Academic Unit',
+        detail: 'Training engineers with comprehensive knowledge in software systems and networks.',
+        iconType: 'study',
+      },
+      {
+        id: 'sat-vmu-spirit',
+        title: 'Maritime Discipline',
+        subtitle: 'Rigorous Mindset',
+        detail: 'High standard of personal discipline, teamwork, and problem-solving resilience.',
+        iconType: 'info',
+      },
+      {
+        id: 'sat-vmu-campus',
+        title: '484 Lach Tray',
+        subtitle: 'Main Campus',
+        detail: 'Main university campus located in Ngo Quyen District, Hai Phong City.',
+        iconType: 'vmu',
+      },
+    ],
+  },
+  {
+    id: 'knowledge',
+    name: 'Foundations',
+    displayTitle: 'K N O W L E D G E',
+    subtitle: 'Computer Science Core // Completed & Ongoing University Courses',
+    navLabel: 'Knowledge',
+    category: 'knowledge',
+    color: '#a855f7',
+    glowColor: '#c084fc',
+    size: 2.4,
+    orbitRadius: 18.5,
+    orbitSpeed: 0.12,
+    textureType: 'violet',
+    hasRings: true,
+    telemetry: [
+      { label: 'LANGUAGES LEARNED', value: 'C / C++, Basic Python' },
+      { label: 'DATABASES', value: 'SQL / MySQL' },
+      { label: 'CORE CONCEPTS', value: 'OOP, Data Structures' },
+      { label: 'NETWORK & OS', value: 'Completed Coursework' },
+      { label: 'SELF-LEARNING', value: 'HTML, CSS, JS Basics' },
+    ],
+    description:
+      'Over the past 2 years at VMU, I have been equipped with solid computer science fundamentals: algorithmic problem-solving with C/C++, Object-Oriented Programming (OOP), relational database design, and computer networks. In my spare time, I proactively research web technologies.',
+    highlights: [
+      'Grasped Object-Oriented Programming (OOP) paradigms and essential algorithms',
+      'Proficient in relational database design and writing SQL queries in MySQL',
+      'Understood computer network architectures and operating systems principles',
+    ],
+    satellites: [
+      {
+        id: 'sat-know-cpp',
+        title: 'C / C++ Programming',
+        subtitle: 'Foundational Course',
+        detail: 'Completed university courses in Intro to Informatics & C/C++ Programming Techniques.',
+        iconType: 'code',
+      },
+      {
+        id: 'sat-know-oop',
+        title: 'OOP Principles',
+        subtitle: 'Object-Oriented Mindset',
+        detail: 'Grasped Encapsulation, Inheritance, Polymorphism, and Abstraction principles.',
+        iconType: 'code',
+      },
+      {
+        id: 'sat-know-db',
+        title: 'SQL Databases',
+        subtitle: 'Data Management',
+        detail: 'Designed ERD models, normalized tables, and queried data with MySQL.',
+        iconType: 'study',
+      },
+      {
+        id: 'sat-know-web',
+        title: 'Modern Web Basics',
+        subtitle: 'HTML, CSS, JS, React',
+        detail: 'Proactively studied modern web architectures, DOM mechanics, and responsive UIs.',
+        iconType: 'code',
+      },
+    ],
+  },
+  {
+    id: 'goals',
+    name: 'Year 3 Goals',
+    displayTitle: 'F U T U R E   G O A L S',
+    subtitle: 'Practical Orientation // Seeking Learning & Internship Opportunities',
+    navLabel: 'Goals',
+    category: 'goals',
+    color: '#10b981',
+    glowColor: '#34d399',
+    size: 2.0,
+    orbitRadius: 23.5,
+    orbitSpeed: 0.08,
+    textureType: 'emerald',
+    telemetry: [
+      { label: 'PRIMARY GOAL', value: 'Find Internship Opportunities' },
+      { label: 'DESIRED ROLE', value: 'Web / Software Dev Intern' },
+      { label: 'WORK ATTITUDE', value: 'Receptive, Growth Mindset' },
+      { label: 'SCHEDULE', value: 'Flexible Around K65 Classes' },
+      { label: 'MINDSET', value: 'Ready to Learn from Scratch' },
+    ],
+    description:
+      'I recognize that I do not yet have practical industry project experience, and projects generated by AI tools cannot count as my own real experience. Therefore, I am seeking an internship position to learn professional workflows, best engineering practices, and gain real-world exposure.',
+    highlights: [
+      'Ready to learn whatever tech stack or workflow the team requires',
+      'Not afraid of challenges, always striving to deliver assigned tasks',
+      'Dedicated to contributing youthful energy and growing every single day',
+    ],
+    satellites: [
+      {
+        id: 'sat-goal-intern',
+        title: 'Find Internship',
+        subtitle: 'Goal #1',
+        detail: 'Seeking opportunities to join an engineering team and adapt to real-world corporate workflows.',
+        iconType: 'goal',
+      },
+      {
+        id: 'sat-goal-learn',
+        title: 'Learn Best Practices',
+        subtitle: 'Hands-on Growth',
+        detail: 'Mastering team workflows with Git, task tracking (Jira/Trello), and clean code.',
+        iconType: 'study',
+      },
+      {
+        id: 'sat-goal-attitude',
+        title: 'Diligent & Receptive',
+        subtitle: 'Committed Attitude',
+        detail: 'Listening attentively to mentor feedback, never hiding weaknesses, and tackling tasks humbly.',
+        iconType: 'goal',
+      },
+      {
+        id: 'sat-goal-grad',
+        title: 'Graduate as Engineer',
+        subtitle: 'Long-term Milestone',
+        detail: 'Successfully completing capstone graduation project at Vietnam Maritime University.',
+        iconType: 'vmu',
+      },
+    ],
+  },
+  {
+    id: 'contact',
+    name: 'Contact & Connect',
+    displayTitle: 'C O N N E C T I O N',
+    subtitle: 'Communication Gateway // Direct Connection to Pham An',
+    navLabel: 'Contact',
+    category: 'contact',
+    color: '#f43f5e',
+    glowColor: '#fb7185',
+    size: 1.8,
+    orbitRadius: 28.5,
+    orbitSpeed: 0.05,
+    textureType: 'coral',
+    telemetry: [
+      { label: 'FACEBOOK', value: 'pham.an.123114' },
+      { label: 'DISCORD', value: 'FamAnVMU' },
+      { label: 'EMAIL', value: 'phama6372@gmail.com' },
+      { label: 'GITHUB', value: 'github.com/FamAnVMU' },
+      { label: 'AVAILABILITY', value: 'Always Ready to Respond' },
+    ],
+    description:
+      'If you are a recruiter, teacher, or friend looking to connect or exchange ideas, I would be delighted to chat through any of the channels below. I always respond as promptly as possible!',
+    highlights: [
+      'Facebook: facebook.com/pham.an.123114',
+      'Discord ID: FamAnVMU (846953344903282758)',
+      'Email: phama6372@gmail.com',
+      'GitHub: github.com/FamAnVMU',
+    ],
+    satellites: [
+      {
+        id: 'sat-conn-fb',
+        title: 'Personal Facebook',
+        subtitle: 'pham.an.123114',
+        detail: 'Social network connection and following daily student life.',
+        iconType: 'facebook',
+        link: 'https://www.facebook.com/pham.an.123114',
+        action: 'link',
+      },
+      {
+        id: 'sat-conn-dc',
+        title: 'Discord Profile',
+        subtitle: 'FamAnVMU (846953344903282758)',
+        detail: 'Tech conversations and programming discussions on Discord.',
+        iconType: 'discord',
+        link: 'https://discord.com/users/846953344903282758',
+        action: 'link',
+      },
+      {
+        id: 'sat-conn-mail',
+        title: 'Direct Email',
+        subtitle: 'phama6372@gmail.com',
+        detail: 'Direct mailbox for job inquiries, internship opportunities, and study exchange.',
+        iconType: 'email',
+        link: 'mailto:phama6372@gmail.com',
+        action: 'copy',
+      },
+      {
+        id: 'sat-conn-git',
+        title: 'GitHub Repository',
+        subtitle: 'github.com/FamAnVMU',
+        detail: 'Repository storing coding exercises and source code by Pham An.',
+        iconType: 'github',
+        link: 'https://github.com/FamAnVMU',
+        action: 'link',
+      },
+    ],
+  },
+];
+
+export const getSolarPlanets = (lang: Language = 'vi'): PlanetData[] => {
+  return lang === 'en' ? SOLAR_PLANETS_EN : SOLAR_PLANETS_VI;
+};
+
+export const SOLAR_PLANETS = SOLAR_PLANETS_VI;
