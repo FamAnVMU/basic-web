@@ -262,8 +262,8 @@ export const SolarSystemCanvas: React.FC<SolarSystemCanvasProps> = ({
     const cloudMesh = new THREE.Mesh(cloudGeo, cloudMat);
     mainPlanetGroup.add(cloudMesh);
 
-    // Atmospheric Fresnel Glow Shader
-    const atmosphereGeo = new THREE.SphereGeometry(mainRadius * 1.12, 64, 64);
+    // Atmospheric Fresnel Glow Shader (refined thin crisp rim)
+    const atmosphereGeo = new THREE.SphereGeometry(mainRadius * 1.045, 64, 64);
     const atmosphereMat = new THREE.ShaderMaterial({
       vertexShader: `
         varying vec3 vNormal;
@@ -281,9 +281,9 @@ export const SolarSystemCanvas: React.FC<SolarSystemCanvasProps> = ({
           vec3 viewDir = normalize(-vPosition);
           float fresnel = dot(viewDir, vNormal);
           fresnel = clamp(1.0 - fresnel, 0.0, 1.0);
-          float glow = pow(fresnel, 2.5);
+          float glow = pow(fresnel, 3.5);
           vec3 cyanGlow = vec3(0.05, 0.82, 1.0);
-          gl_FragColor = vec4(cyanGlow, glow * 0.9);
+          gl_FragColor = vec4(cyanGlow, glow * 0.75);
         }
       `,
       blending: THREE.AdditiveBlending,
@@ -319,18 +319,79 @@ export const SolarSystemCanvas: React.FC<SolarSystemCanvasProps> = ({
 
     // 8. Orbiting Planets Photorealistic Texture & Shader Materials
     const jupiterTex = textureLoader.load('/textures/jupitermap.jpg');
-    const neptuneTex = textureLoader.load('/textures/neptunemap.jpg');
+    const neptune2kTex = textureLoader.load('/textures/2k_neptune.jpg');
     const venusTex = textureLoader.load('/textures/venusmap.jpg');
-    const marsTex = textureLoader.load('/textures/marsmap.jpg');
+    const mars2kTex = textureLoader.load('/textures/2k_mars.jpg');
     const marsBumpTex = textureLoader.load('/textures/marsbump.jpg');
-    const saturnRingTex = textureLoader.load('/textures/saturnringcolor.jpg');
-    const saturnRingPattern = textureLoader.load('/textures/saturnringpattern.gif');
 
-    [jupiterTex, neptuneTex, venusTex, marsTex, marsBumpTex, saturnRingTex, saturnRingPattern].forEach((t) => {
+    [jupiterTex, neptune2kTex, venusTex, mars2kTex, marsBumpTex].forEach((t) => {
       t.anisotropy = maxAnisotropy;
       t.wrapS = THREE.RepeatWrapping;
       t.wrapT = THREE.ClampToEdgeWrapping;
     });
+
+    // Procedural Ultra-Crisp Concentric Ring Texture with Cassini Division and Micro-Ringlets
+    const createConcentricRingTexture = () => {
+      const canvas = document.createElement('canvas');
+      canvas.width = 1024;
+      canvas.height = 64;
+      const ctx = canvas.getContext('2d');
+      if (!ctx) return new THREE.Texture();
+
+      const grad = ctx.createLinearGradient(0, 0, 1024, 0);
+      // Inner edge fade
+      grad.addColorStop(0.0, 'rgba(0, 0, 0, 0)');
+      grad.addColorStop(0.03, 'rgba(192, 132, 252, 0.08)');
+
+      // C-Ring (Crepe ring: delicate semi-transparent icy dust)
+      grad.addColorStop(0.12, 'rgba(192, 132, 252, 0.32)');
+      grad.addColorStop(0.32, 'rgba(168, 85, 247, 0.38)');
+
+      // Maxwell division
+      grad.addColorStop(0.35, 'rgba(25, 12, 45, 0.08)');
+
+      // B-Ring (The brightest, densest inner ring with majestic icy luminescence)
+      grad.addColorStop(0.38, 'rgba(233, 213, 255, 0.92)');
+      grad.addColorStop(0.48, 'rgba(245, 208, 254, 0.98)');
+      grad.addColorStop(0.56, 'rgba(216, 180, 254, 0.82)');
+      grad.addColorStop(0.66, 'rgba(243, 232, 255, 0.95)');
+      grad.addColorStop(0.70, 'rgba(216, 180, 254, 0.88)');
+
+      // Cassini Division (The iconic dark gap between B and A rings)
+      grad.addColorStop(0.71, 'rgba(10, 4, 25, 0.02)');
+      grad.addColorStop(0.75, 'rgba(10, 4, 25, 0.02)');
+
+      // A-Ring (Outer ring with high structural density)
+      grad.addColorStop(0.76, 'rgba(216, 180, 254, 0.78)');
+      grad.addColorStop(0.85, 'rgba(192, 132, 252, 0.72)');
+      // Encke gap
+      grad.addColorStop(0.89, 'rgba(15, 6, 32, 0.05)');
+      grad.addColorStop(0.90, 'rgba(216, 180, 254, 0.70)');
+      grad.addColorStop(0.95, 'rgba(168, 85, 247, 0.45)');
+
+      // F-Ring strand & smooth cosmic fade
+      grad.addColorStop(0.97, 'rgba(147, 51, 234, 0.28)');
+      grad.addColorStop(1.0, 'rgba(0, 0, 0, 0)');
+
+      ctx.fillStyle = grad;
+      ctx.fillRect(0, 0, 1024, 64);
+
+      // Micro-ringlet striations for authentic photographic telescope quality
+      for (let x = 380; x < 970; x += 3) {
+        if (x >= 720 && x <= 770) continue; // Keep Cassini division clean
+        const alpha = (Math.sin(x * 0.48) * 0.5 + 0.5) * 0.16;
+        ctx.fillStyle = `rgba(255, 255, 255, ${alpha})`;
+        ctx.fillRect(x, 0, 1.5, 64);
+      }
+
+      const texture = new THREE.CanvasTexture(canvas);
+      texture.wrapS = THREE.ClampToEdgeWrapping;
+      texture.wrapT = THREE.ClampToEdgeWrapping;
+      texture.needsUpdate = true;
+      return texture;
+    };
+
+    const ringTexture = createConcentricRingTexture();
 
     interface OrbitingPlanetItem {
       id: string;
@@ -370,14 +431,14 @@ export const SolarSystemCanvas: React.FC<SolarSystemCanvasProps> = ({
           emissiveIntensity: 0.35,
         });
       } else if (planet.id === 'knowledge') {
-        // Knowledge - Deep Violet / Cosmic Neptune with icy ring system
+        // Knowledge - Deep Violet / Cosmic Neptune with icy ring system (2K High-Res)
         mat = new THREE.MeshStandardMaterial({
-          map: neptuneTex,
+          map: neptune2kTex,
           color: new THREE.Color(0xd8b4fe),
-          roughness: 0.45,
-          metalness: 0.25,
-          emissive: new THREE.Color(0x581c87),
-          emissiveIntensity: 0.45,
+          roughness: 0.4,
+          metalness: 0.2,
+          emissive: new THREE.Color(0x3b0764),
+          emissiveIntensity: 0.4,
         });
       } else if (planet.id === 'goals') {
         // Future Goals - Emerald / Jade Terrestrial Exoplanet with atmospheric relief
@@ -390,16 +451,16 @@ export const SolarSystemCanvas: React.FC<SolarSystemCanvasProps> = ({
           emissiveIntensity: 0.5,
         });
       } else {
-        // Connection - Red Ruby / Mars with authentic canyon & crater bump relief
+        // Connection - Red Ruby / Mars (2K High-Res NASA Map with crater & canyon bump relief)
         mat = new THREE.MeshStandardMaterial({
-          map: marsTex,
+          map: mars2kTex,
           normalMap: marsBumpTex,
-          normalScale: new THREE.Vector2(0.85, 0.85),
-          color: new THREE.Color(0xf43f5e),
-          roughness: 0.65,
-          metalness: 0.2,
-          emissive: new THREE.Color(0x881337),
-          emissiveIntensity: 0.45,
+          normalScale: new THREE.Vector2(1.2, 1.2),
+          color: new THREE.Color(0xffffff),
+          roughness: 0.62,
+          metalness: 0.15,
+          emissive: new THREE.Color(0x3b0a15),
+          emissiveIntensity: 0.35,
         });
       }
 
@@ -407,11 +468,12 @@ export const SolarSystemCanvas: React.FC<SolarSystemCanvasProps> = ({
       mesh.userData = { planetId: planet.id };
       pGroup.add(mesh);
 
-      const glowGeo = new THREE.SphereGeometry(planet.size * 1.25, 32, 32);
+      // Tight, crisp atmospheric rim glow (not a large blurry halo)
+      const glowGeo = new THREE.SphereGeometry(planet.size * 1.05, 32, 32);
       const glowMat = new THREE.MeshBasicMaterial({
         color: new THREE.Color(planet.glowColor),
         transparent: true,
-        opacity: 0.25,
+        opacity: 0.15,
         blending: THREE.AdditiveBlending,
         side: THREE.BackSide,
       });
@@ -419,15 +481,29 @@ export const SolarSystemCanvas: React.FC<SolarSystemCanvasProps> = ({
       pGroup.add(glowMesh);
 
       if (planet.hasRings) {
-        const ringGeo = new THREE.RingGeometry(planet.size * 1.45, planet.size * 2.3, 64);
-        const ringMat = new THREE.MeshBasicMaterial({
-          map: saturnRingTex,
-          alphaMap: saturnRingPattern,
-          color: new THREE.Color(0xd8b4fe),
+        const innerR = planet.size * 1.38;
+        const outerR = planet.size * 2.45;
+        // 128 theta segments, 16 radial segments with custom concentric radial UV mapping
+        const ringGeo = new THREE.RingGeometry(innerR, outerR, 128, 16);
+        const pos = ringGeo.attributes.position;
+        const uvs = ringGeo.attributes.uv;
+        for (let i = 0; i < pos.count; i++) {
+          const x = pos.getX(i);
+          const y = pos.getY(i);
+          const dist = Math.sqrt(x * x + y * y);
+          const u = (dist - innerR) / (outerR - innerR);
+          uvs.setXY(i, u, 0.5);
+        }
+        uvs.needsUpdate = true;
+
+        const ringMat = new THREE.MeshStandardMaterial({
+          map: ringTexture,
           side: THREE.DoubleSide,
           transparent: true,
-          opacity: 0.75,
-          blending: THREE.AdditiveBlending,
+          roughness: 0.35,
+          metalness: 0.1,
+          blending: THREE.NormalBlending,
+          depthWrite: false,
         });
         const ringMesh = new THREE.Mesh(ringGeo, ringMat);
         ringMesh.rotation.x = Math.PI * 0.45;
@@ -754,8 +830,8 @@ export const SolarSystemCanvas: React.FC<SolarSystemCanvasProps> = ({
           found.mesh.getWorldPosition(worldPos);
           const size = found.size;
           const color = new THREE.Color(found.baseColor).getHex();
-          // Distance pushed back significantly (size * 6.5 + 18.0) so planet occupies only ~20-25% screen height
-          const camDist = size * 6.5 + 18.0;
+          // Distance pushed back comfortably (size * 5.8 + 17.0) so planet occupies only ~20-25% screen height
+          const camDist = size * 5.8 + 17.0;
           camPos.set(
             worldPos.x + mouse.x * 0.8,
             worldPos.y + 1.6 + mouse.y * 0.4,
@@ -843,8 +919,8 @@ export const SolarSystemCanvas: React.FC<SolarSystemCanvasProps> = ({
         p.mesh.rotation.y += delta * 0.2;
 
         const isCurrentActive = activePlanetRef.current === p.id;
-        p.glowMesh.scale.setScalar(isCurrentActive ? 1.5 : 1.2);
-        (p.glowMesh.material as THREE.MeshBasicMaterial).opacity = isCurrentActive ? 0.55 : 0.2;
+        p.glowMesh.scale.setScalar(isCurrentActive ? 1.08 : 1.03);
+        (p.glowMesh.material as THREE.MeshBasicMaterial).opacity = isCurrentActive ? 0.32 : 0.12;
       });
 
       // Wrap seamlessly from the last planet (Contact = 4) back to Home (0)
@@ -1024,12 +1100,11 @@ export const SolarSystemCanvas: React.FC<SolarSystemCanvasProps> = ({
       earthCloudsMap.dispose();
       earthLightsMap.dispose();
       jupiterTex.dispose();
-      neptuneTex.dispose();
+      neptune2kTex.dispose();
       venusTex.dispose();
-      marsTex.dispose();
+      mars2kTex.dispose();
       marsBumpTex.dispose();
-      saturnRingTex.dispose();
-      saturnRingPattern.dispose();
+      ringTexture.dispose();
       mainGeo.dispose();
       mainMat.dispose();
       cloudGeo.dispose();

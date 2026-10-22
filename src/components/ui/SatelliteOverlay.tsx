@@ -78,27 +78,27 @@ export const SatelliteOverlay: React.FC<SatelliteOverlayProps> = ({
               top: `${Math.round(sat.y)}px`,
             }}
           >
-            {/* Holographic Satellite Chip */}
+            {/* Holographic Satellite Chip - Compact & Sleek */}
             <div
               onClick={(e) => handleSatelliteClick(e, sat)}
-              className="px-3 py-1.5 rounded-xl bg-[#020612]/85 backdrop-blur-md border border-cyan-400/50 hover:border-cyan-300 hover:bg-[#071936]/90 shadow-[0_0_15px_rgba(0,243,255,0.25)] flex items-center gap-2 cursor-pointer transition-all hover:scale-105 active:scale-95 text-left"
+              className="px-2.5 py-1 rounded-xl bg-[#020612]/90 backdrop-blur-md border border-cyan-400/40 hover:border-cyan-300 hover:bg-[#071936]/90 shadow-[0_0_12px_rgba(0,243,255,0.2)] flex items-center gap-1.5 cursor-pointer transition-all hover:scale-105 active:scale-95 text-left"
               title="Bấm để xem chi tiết thông tin vệ tinh này"
             >
-              <div className="p-1 rounded-md bg-cyan-950/80 border border-cyan-400/30 shrink-0">
+              <div className="p-1 rounded-lg bg-cyan-950/80 border border-cyan-400/30 shrink-0">
                 {getSatelliteIcon(sat.satellite.iconType)}
               </div>
 
               <div>
-                <div className="font-orbitron font-semibold text-xs text-white group-hover:text-cyan-300 transition-colors flex items-center gap-1.5 leading-tight">
-                  <span>{sat.satellite.title}</span>
+                <div className="font-orbitron font-medium text-[10.5px] text-white group-hover:text-cyan-300 transition-colors flex items-center gap-1 leading-tight">
+                  <span className="truncate max-w-[140px]">{sat.satellite.title}</span>
                   {sat.satellite.action === 'link' && (
-                    <ExternalLink className="w-2.5 h-2.5 text-cyan-400 opacity-70" />
+                    <ExternalLink className="w-2 h-2 text-cyan-400 opacity-70" />
                   )}
                   {sat.satellite.action === 'copy' && (
-                    isCopied ? <Check className="w-2.5 h-2.5 text-emerald-400" /> : <Copy className="w-2.5 h-2.5 text-cyan-400 opacity-70" />
+                    isCopied ? <Check className="w-2 h-2 text-emerald-400" /> : <Copy className="w-2 h-2 text-cyan-400 opacity-70" />
                   )}
                 </div>
-                <div className="text-[9px] font-mono-code text-cyan-400/90 leading-tight">
+                <div className="text-[8px] font-mono-code text-cyan-400/80 leading-tight">
                   {sat.satellite.subtitle}
                 </div>
               </div>
