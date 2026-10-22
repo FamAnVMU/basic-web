@@ -210,142 +210,22 @@ export const SolarSystemCanvas: React.FC<SolarSystemCanvasProps> = ({
     const starField = new THREE.Points(starGeo, starMat);
     scene.add(starField);
 
-    // 5. High-Resolution (2048x1024) Procedural Textures with Sharp Details
-    const createHighResPlanetTexture = (type: string) => {
-      const canvas = document.createElement('canvas');
-      canvas.width = 2048;
-      canvas.height = 1024;
-      const ctx = canvas.getContext('2d');
-      if (!ctx) return new THREE.Texture();
+    // 5. Photorealistic Texture Loader & Centerpiece Main Planet: "PHAM AN" (NASA Blue Marble 4K)
+    const textureLoader = new THREE.TextureLoader();
 
-      if (type === 'earth') {
-        // Deep Obsidian Ocean
-        ctx.fillStyle = '#021838';
-        ctx.fillRect(0, 0, canvas.width, canvas.height);
+    // Load High-Res NASA & Planetary Maps
+    const earthDayMap = textureLoader.load('/textures/earth_day.jpg');
+    const earthNormalMap = textureLoader.load('/textures/earth_normal.jpg');
+    const earthSpecMap = textureLoader.load('/textures/earth_specular.jpg');
+    const earthCloudsMap = textureLoader.load('/textures/earth_clouds.png');
+    const earthLightsMap = textureLoader.load('/textures/earth_lights.png');
 
-        // Continental Shelf & Coastlines (Cyan Turquoise gradient)
-        ctx.fillStyle = '#08486e';
-        for (let i = 0; i < 50; i++) {
-          const x = Math.random() * canvas.width;
-          const y = Math.random() * canvas.height;
-          const r = Math.random() * 220 + 50;
-          ctx.beginPath();
-          ctx.arc(x, y, r, 0, Math.PI * 2);
-          ctx.fill();
-        }
+    [earthDayMap, earthNormalMap, earthSpecMap, earthCloudsMap, earthLightsMap].forEach((t) => {
+      t.anisotropy = maxAnisotropy;
+      t.wrapS = THREE.RepeatWrapping;
+      t.wrapT = THREE.ClampToEdgeWrapping;
+    });
 
-        // Inner Landmasses (Deep navy & emerald earth)
-        ctx.fillStyle = '#0c3559';
-        for (let i = 0; i < 60; i++) {
-          const x = Math.random() * canvas.width;
-          const y = Math.random() * canvas.height;
-          const r = Math.random() * 150 + 30;
-          ctx.beginPath();
-          ctx.arc(x, y, r, 0, Math.PI * 2);
-          ctx.fill();
-        }
-
-        // Craggy mountain ridges & detailed fractal lines
-        ctx.strokeStyle = '#1e293b';
-        ctx.lineWidth = 3;
-        for (let i = 0; i < 30; i++) {
-          ctx.beginPath();
-          let cx = Math.random() * canvas.width;
-          let cy = Math.random() * canvas.height;
-          ctx.moveTo(cx, cy);
-          for (let j = 0; j < 8; j++) {
-            cx += (Math.random() - 0.5) * 120;
-            cy += (Math.random() - 0.5) * 80;
-            ctx.lineTo(cx, cy);
-          }
-          ctx.stroke();
-        }
-
-        // High-altitude Swirling White Clouds
-        ctx.fillStyle = 'rgba(255, 255, 255, 0.55)';
-        for (let i = 0; i < 70; i++) {
-          const x = Math.random() * canvas.width;
-          const y = Math.random() * canvas.height;
-          const w = Math.random() * 420 + 80;
-          const h = Math.random() * 65 + 15;
-          ctx.beginPath();
-          ctx.ellipse(x, y, w, h, (Math.random() - 0.5) * 0.4, 0, Math.PI * 2);
-          ctx.fill();
-        }
-
-        // Luminous Night City Lights / Cyber Grid on Dark Hemisphere
-        ctx.fillStyle = 'rgba(0, 243, 255, 0.9)';
-        for (let i = 0; i < 400; i++) {
-          const x = Math.random() * (canvas.width * 0.52);
-          const y = Math.random() * canvas.height;
-          const s = Math.random() * 2 + 1;
-          ctx.fillRect(x, y, s, s);
-        }
-      } else if (type === 'gold') {
-        // High-detail Golden Gas Giant with fine atmospheric bands
-        ctx.fillStyle = '#78350f';
-        ctx.fillRect(0, 0, canvas.width, canvas.height);
-
-        for (let y = 0; y < canvas.height; y += 8) {
-          const hue = y % 32 < 16 ? '#f59e0b' : '#d97706';
-          ctx.fillStyle = hue;
-          ctx.fillRect(0, y, canvas.width, 7);
-        }
-
-        // Amber Storm Swirls
-        ctx.fillStyle = 'rgba(254, 240, 138, 0.45)';
-        for (let i = 0; i < 45; i++) {
-          const x = Math.random() * canvas.width;
-          const y = Math.random() * canvas.height;
-          ctx.beginPath();
-          ctx.ellipse(x, y, 70, 30, (Math.random() - 0.5) * 0.2, 0, Math.PI * 2);
-          ctx.fill();
-        }
-      } else if (type === 'violet') {
-        // High-detail Ultraviolet striped planet
-        ctx.fillStyle = '#2e1065';
-        ctx.fillRect(0, 0, canvas.width, canvas.height);
-
-        for (let y = 0; y < canvas.height; y += 10) {
-          ctx.fillStyle = y % 40 < 20 ? '#7e22ce' : '#581c87';
-          ctx.fillRect(0, y, canvas.width, 8);
-        }
-
-        ctx.fillStyle = 'rgba(216, 180, 254, 0.4)';
-        for (let i = 0; i < 50; i++) {
-          ctx.beginPath();
-          ctx.arc(Math.random() * canvas.width, Math.random() * canvas.height, 45, 0, Math.PI * 2);
-          ctx.fill();
-        }
-      } else if (type === 'emerald') {
-        // Rich Mint & Jade Planet
-        ctx.fillStyle = '#064e3b';
-        ctx.fillRect(0, 0, canvas.width, canvas.height);
-
-        for (let y = 0; y < canvas.height; y += 10) {
-          ctx.fillStyle = y % 30 < 15 ? '#059669' : '#047857';
-          ctx.fillRect(0, y, canvas.width, 9);
-        }
-      } else {
-        // Coral / Crimson Ruby Bands
-        ctx.fillStyle = '#881337';
-        ctx.fillRect(0, 0, canvas.width, canvas.height);
-
-        for (let y = 0; y < canvas.height; y += 10) {
-          ctx.fillStyle = y % 30 < 15 ? '#e11d48' : '#be123c';
-          ctx.fillRect(0, y, canvas.width, 9);
-        }
-      }
-
-      const texture = new THREE.CanvasTexture(canvas);
-      texture.wrapS = THREE.RepeatWrapping;
-      texture.wrapT = THREE.ClampToEdgeWrapping;
-      texture.anisotropy = maxAnisotropy;
-      texture.needsUpdate = true;
-      return texture;
-    };
-
-    // 6. Centerpiece Main Planet: "PHAM AN" (Orionis Style)
     const mainPlanetGroup = new THREE.Group();
     // Offset downwards to match reference composition where planet comfortably sits in lower half
     mainPlanetGroup.position.set(0, -6.8, 0);
@@ -353,17 +233,34 @@ export const SolarSystemCanvas: React.FC<SolarSystemCanvasProps> = ({
 
     const mainRadius = 5.2; // Slightly more compact to provide generous space for top telemetry text
     const mainGeo = new THREE.SphereGeometry(mainRadius, 128, 128); // 128x128 for ultra crisp sphere
-    const mainTex = createHighResPlanetTexture('earth');
+
+    // Main Surface Material with Normal Relief, Water Specular, and Cyber Night Lights
     const mainMat = new THREE.MeshStandardMaterial({
-      map: mainTex,
-      roughness: 0.55,
-      metalness: 0.25,
-      emissive: new THREE.Color(0x02162e),
-      emissiveIntensity: 0.75,
+      map: earthDayMap,
+      normalMap: earthNormalMap,
+      normalScale: new THREE.Vector2(0.85, 0.85),
+      roughnessMap: earthSpecMap,
+      roughness: 0.45,
+      metalness: 0.15,
+      emissiveMap: earthLightsMap,
+      emissive: new THREE.Color(0x00f3ff), // Cyber glowing night cities
+      emissiveIntensity: 0.85,
     });
     const mainMesh = new THREE.Mesh(mainGeo, mainMat);
     mainMesh.userData = { planetId: 'home' };
     mainPlanetGroup.add(mainMesh);
+
+    // Dynamic 3D Cloud Layer Mesh (rotates independently over the surface)
+    const cloudGeo = new THREE.SphereGeometry(mainRadius * 1.018, 96, 96);
+    const cloudMat = new THREE.MeshStandardMaterial({
+      map: earthCloudsMap,
+      transparent: true,
+      opacity: 0.5,
+      blending: THREE.AdditiveBlending,
+      depthWrite: false,
+    });
+    const cloudMesh = new THREE.Mesh(cloudGeo, cloudMat);
+    mainPlanetGroup.add(cloudMesh);
 
     // Atmospheric Fresnel Glow Shader
     const atmosphereGeo = new THREE.SphereGeometry(mainRadius * 1.12, 64, 64);
@@ -420,7 +317,21 @@ export const SolarSystemCanvas: React.FC<SolarSystemCanvasProps> = ({
       orbitGroup.add(orbitLine);
     });
 
-    // 8. Orbiting Planets
+    // 8. Orbiting Planets Photorealistic Texture & Shader Materials
+    const jupiterTex = textureLoader.load('/textures/jupitermap.jpg');
+    const neptuneTex = textureLoader.load('/textures/neptunemap.jpg');
+    const venusTex = textureLoader.load('/textures/venusmap.jpg');
+    const marsTex = textureLoader.load('/textures/marsmap.jpg');
+    const marsBumpTex = textureLoader.load('/textures/marsbump.jpg');
+    const saturnRingTex = textureLoader.load('/textures/saturnringcolor.jpg');
+    const saturnRingPattern = textureLoader.load('/textures/saturnringpattern.gif');
+
+    [jupiterTex, neptuneTex, venusTex, marsTex, marsBumpTex, saturnRingTex, saturnRingPattern].forEach((t) => {
+      t.anisotropy = maxAnisotropy;
+      t.wrapS = THREE.RepeatWrapping;
+      t.wrapT = THREE.ClampToEdgeWrapping;
+    });
+
     interface OrbitingPlanetItem {
       id: string;
       group: THREE.Group;
@@ -447,14 +358,51 @@ export const SolarSystemCanvas: React.FC<SolarSystemCanvasProps> = ({
       orbitGroup.add(pGroup);
 
       const geo = new THREE.SphereGeometry(planet.size, 64, 64);
-      const tex = createHighResPlanetTexture(planet.textureType);
-      const mat = new THREE.MeshStandardMaterial({
-        map: tex,
-        roughness: 0.5,
-        metalness: 0.3,
-        emissive: new THREE.Color(planet.color),
-        emissiveIntensity: 0.45,
-      });
+      let mat: THREE.MeshStandardMaterial;
+
+      if (planet.id === 'vmu') {
+        // VMU Orbit - Photorealistic Golden Gas Giant (Jupiter Map with amber maritime glow)
+        mat = new THREE.MeshStandardMaterial({
+          map: jupiterTex,
+          roughness: 0.5,
+          metalness: 0.15,
+          emissive: new THREE.Color(0x78350f),
+          emissiveIntensity: 0.35,
+        });
+      } else if (planet.id === 'knowledge') {
+        // Knowledge - Deep Violet / Cosmic Neptune with icy ring system
+        mat = new THREE.MeshStandardMaterial({
+          map: neptuneTex,
+          color: new THREE.Color(0xd8b4fe),
+          roughness: 0.45,
+          metalness: 0.25,
+          emissive: new THREE.Color(0x581c87),
+          emissiveIntensity: 0.45,
+        });
+      } else if (planet.id === 'goals') {
+        // Future Goals - Emerald / Jade Terrestrial Exoplanet with atmospheric relief
+        mat = new THREE.MeshStandardMaterial({
+          map: venusTex,
+          color: new THREE.Color(0x10b981),
+          roughness: 0.55,
+          metalness: 0.15,
+          emissive: new THREE.Color(0x064e3b),
+          emissiveIntensity: 0.5,
+        });
+      } else {
+        // Connection - Red Ruby / Mars with authentic canyon & crater bump relief
+        mat = new THREE.MeshStandardMaterial({
+          map: marsTex,
+          normalMap: marsBumpTex,
+          normalScale: new THREE.Vector2(0.85, 0.85),
+          color: new THREE.Color(0xf43f5e),
+          roughness: 0.65,
+          metalness: 0.2,
+          emissive: new THREE.Color(0x881337),
+          emissiveIntensity: 0.45,
+        });
+      }
+
       const mesh = new THREE.Mesh(geo, mat);
       mesh.userData = { planetId: planet.id };
       pGroup.add(mesh);
@@ -471,12 +419,14 @@ export const SolarSystemCanvas: React.FC<SolarSystemCanvasProps> = ({
       pGroup.add(glowMesh);
 
       if (planet.hasRings) {
-        const ringGeo = new THREE.RingGeometry(planet.size * 1.4, planet.size * 2.1, 48);
+        const ringGeo = new THREE.RingGeometry(planet.size * 1.45, planet.size * 2.3, 64);
         const ringMat = new THREE.MeshBasicMaterial({
-          color: 0xc084fc,
+          map: saturnRingTex,
+          alphaMap: saturnRingPattern,
+          color: new THREE.Color(0xd8b4fe),
           side: THREE.DoubleSide,
           transparent: true,
-          opacity: 0.4,
+          opacity: 0.75,
           blending: THREE.AdditiveBlending,
         });
         const ringMesh = new THREE.Mesh(ringGeo, ringMat);
@@ -878,8 +828,9 @@ export const SolarSystemCanvas: React.FC<SolarSystemCanvasProps> = ({
       mouse.x += (mouse.targetX - mouse.x) * 0.05;
       mouse.y += (mouse.targetY - mouse.y) * 0.05;
 
-      // Rotate Main Planet slowly
-      mainMesh.rotation.y += delta * 0.08;
+      // Rotate Main Planet & Cloud Layer independently for dynamic living atmosphere
+      mainMesh.rotation.y += delta * 0.06;
+      cloudMesh.rotation.y += delta * 0.085;
 
       // Update positions of orbiting planets
       orbitingPlanetMeshes.forEach((p) => {
@@ -1067,9 +1018,22 @@ export const SolarSystemCanvas: React.FC<SolarSystemCanvasProps> = ({
       triggerDirectWarpRef.current = null;
 
       particleTexture.dispose();
-      mainTex.dispose();
+      earthDayMap.dispose();
+      earthNormalMap.dispose();
+      earthSpecMap.dispose();
+      earthCloudsMap.dispose();
+      earthLightsMap.dispose();
+      jupiterTex.dispose();
+      neptuneTex.dispose();
+      venusTex.dispose();
+      marsTex.dispose();
+      marsBumpTex.dispose();
+      saturnRingTex.dispose();
+      saturnRingPattern.dispose();
       mainGeo.dispose();
       mainMat.dispose();
+      cloudGeo.dispose();
+      cloudMat.dispose();
       atmosphereGeo.dispose();
       atmosphereMat.dispose();
       starGeo.dispose();
