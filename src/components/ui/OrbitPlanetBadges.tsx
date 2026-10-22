@@ -93,7 +93,7 @@ export const OrbitPlanetBadges: React.FC<OrbitPlanetBadgesProps> = ({
 
         {/* Dynamic Planet Title & Subtitle */}
         <div className="transition-all duration-500">
-          <div className="font-orbitron font-medium text-xs sm:text-base text-white tracking-[0.25em] sm:tracking-[0.3em] uppercase group-hover:text-cyan-300 transition-colors">
+          <div className="font-orbitron font-semibold text-xs sm:text-base text-white tracking-[0.1em] sm:tracking-[0.15em] uppercase group-hover:text-cyan-300 transition-colors">
             {badgeInfo.title}
           </div>
           <div className="text-[9px] sm:text-[10px] font-mono-code text-slate-400 tracking-wider">

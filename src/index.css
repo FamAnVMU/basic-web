@@ -1,9 +1,17 @@
 @import "tailwindcss";
 
+@theme {
+  --font-sans: 'Be Vietnam Pro', 'Plus Jakarta Sans', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  --font-orbitron: 'Chakra Petch', 'Orbitron', 'Be Vietnam Pro', sans-serif;
+  --font-cyber: 'Chakra Petch', 'Orbitron', 'Be Vietnam Pro', sans-serif;
+  --font-mono: 'JetBrains Mono', monospace;
+}
+
 @layer base {
   :root {
-    --font-sans: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
-    --font-orbitron: 'Orbitron', monospace;
+    --font-sans: 'Be Vietnam Pro', 'Plus Jakarta Sans', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    --font-orbitron: 'Chakra Petch', 'Orbitron', 'Be Vietnam Pro', sans-serif;
+    --font-cyber: 'Chakra Petch', 'Orbitron', 'Be Vietnam Pro', sans-serif;
     --font-mono: 'JetBrains Mono', monospace;
     --color-cyan-glow: #00f3ff;
     --color-space-dark: #02040a;
@@ -19,6 +27,9 @@
     background-color: #02040a;
     color: #f1f5f9;
     font-family: var(--font-sans);
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    text-rendering: optimizeLegibility;
   }
 
   body {
@@ -27,12 +38,21 @@
     overflow-x: hidden;
     background: #02040a;
     min-height: 100vh;
+    font-family: var(--font-sans);
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
   }
 }
 
-/* Custom Typography Helpers */
-.font-orbitron {
-  font-family: 'Orbitron', monospace, sans-serif;
+/* Custom Typography Helpers with Full Vietnamese Diacritics Support */
+.font-orbitron,
+.font-cyber {
+  font-family: 'Chakra Petch', 'Orbitron', 'Be Vietnam Pro', sans-serif;
+  letter-spacing: 0.035em;
+}
+
+.font-sans {
+  font-family: 'Be Vietnam Pro', 'Plus Jakarta Sans', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
 }
 
 .font-mono-code {

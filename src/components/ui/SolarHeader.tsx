@@ -124,12 +124,12 @@ export const SolarHeader: React.FC<SolarHeaderProps> = ({
         </div>
       </div>
 
-      {/* Hero Display Title: Large Spaced Uppercase (scaled down for sleekness) */}
+      {/* Hero Display Title: Large Spaced Uppercase */}
       <div className="text-center mt-2.5 sm:mt-3.5 transition-all duration-500">
-        <h1 className="font-orbitron font-medium text-lg sm:text-2xl lg:text-3xl text-white tracking-[0.25em] sm:tracking-[0.4em] uppercase text-cyan-glow-subtle">
+        <h1 className="font-orbitron font-medium text-lg sm:text-2xl lg:text-3xl text-white tracking-[0.12em] sm:tracking-[0.18em] uppercase text-cyan-glow-subtle">
           {activePlanet.displayTitle}
         </h1>
-        <p className="text-[9px] sm:text-[10px] font-mono-code text-cyan-400/90 tracking-widest uppercase mt-0.5">
+        <p className="text-[9px] sm:text-[10px] font-mono-code text-cyan-400/90 tracking-wider uppercase mt-0.5">
           {activePlanet.subtitle}
         </p>
       </div>
