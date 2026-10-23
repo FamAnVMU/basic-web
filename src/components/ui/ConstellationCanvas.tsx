@@ -26,8 +26,8 @@ export const ConstellationCanvas: React.FC<ConstellationCanvasProps> = ({
   });
 
   useEffect(() => {
-    mouseRef.current.x = mouseX ?? null;
-    mouseRef.current.y = mouseY ?? null;
+    if (mouseX !== undefined) mouseRef.current.x = mouseX;
+    if (mouseY !== undefined) mouseRef.current.y = mouseY;
   }, [mouseX, mouseY]);
 
   useEffect(() => {
@@ -37,18 +37,66 @@ export const ConstellationCanvas: React.FC<ConstellationCanvasProps> = ({
     const ctx = canvas.getContext('2d');
     if (!ctx) return;
 
-    let width = (canvas.width = canvas.parentElement?.clientWidth || 600);
-    let height = (canvas.height = canvas.parentElement?.clientHeight || 500);
+    const parent = canvas.parentElement;
+
+    let width = (canvas.width = parent?.clientWidth || 600);
+    let height = (canvas.height = parent?.clientHeight || 500);
 
     const handleResize = () => {
-      if (!canvas.parentElement) return;
-      width = canvas.width = canvas.parentElement.clientWidth;
-      height = canvas.height = canvas.parentElement.clientHeight;
+      if (!parent) return;
+      width = canvas.width = parent.clientWidth;
+      height = canvas.height = parent.clientHeight;
     };
 
     const resizeObserver = new ResizeObserver(handleResize);
-    if (canvas.parentElement) {
-      resizeObserver.observe(canvas.parentElement);
+    if (parent) {
+      resizeObserver.observe(parent);
+    }
+
+    // Direct native mouse & touch tracking on parent element
+    // This eliminates React re-renders and ensures 1:1 sync with the modal frame regardless of inner scroll position
+    const handleMouseMove = (e: MouseEvent) => {
+      if (!parent) return;
+      const rect = parent.getBoundingClientRect();
+      const x = e.clientX - rect.left;
+      const y = e.clientY - rect.top;
+      if (x >= 0 && x <= rect.width && y >= 0 && y <= rect.height) {
+        mouseRef.current.x = x;
+        mouseRef.current.y = y;
+      } else {
+        mouseRef.current.x = null;
+        mouseRef.current.y = null;
+      }
+    };
+
+    const handleMouseLeave = () => {
+      mouseRef.current.x = null;
+      mouseRef.current.y = null;
+    };
+
+    const handleTouchMove = (e: TouchEvent) => {
+      if (!parent || e.touches.length === 0) return;
+      const touch = e.touches[0];
+      const rect = parent.getBoundingClientRect();
+      const x = touch.clientX - rect.left;
+      const y = touch.clientY - rect.top;
+      if (x >= 0 && x <= rect.width && y >= 0 && y <= rect.height) {
+        mouseRef.current.x = x;
+        mouseRef.current.y = y;
+      }
+    };
+
+    const handleTouchEnd = () => {
+      mouseRef.current.x = null;
+      mouseRef.current.y = null;
+    };
+
+    if (parent) {
+      parent.addEventListener('mousemove', handleMouseMove, { passive: true });
+      parent.addEventListener('mouseleave', handleMouseLeave, { passive: true });
+      parent.addEventListener('touchmove', handleTouchMove, { passive: true });
+      parent.addEventListener('touchend', handleTouchEnd, { passive: true });
+      parent.addEventListener('touchcancel', handleTouchEnd, { passive: true });
     }
 
     // Generate constellation nodes
@@ -80,8 +128,21 @@ export const ConstellationCanvas: React.FC<ConstellationCanvasProps> = ({
         p.y += p.vy;
 
         // Bounce gently inside container bounds
-        if (p.x <= 8 || p.x >= width - 8) p.vx *= -1;
-        if (p.y <= 8 || p.y >= height - 8) p.vy *= -1;
+        if (p.x <= 8) {
+          p.x = 8;
+          p.vx *= -1;
+        } else if (p.x >= width - 8) {
+          p.x = width - 8;
+          p.vx *= -1;
+        }
+
+        if (p.y <= 8) {
+          p.y = 8;
+          p.vy *= -1;
+        } else if (p.y >= height - 8) {
+          p.y = height - 8;
+          p.vy *= -1;
+        }
 
         p.pulse += p.pulseSpeed;
       }
@@ -170,6 +231,13 @@ export const ConstellationCanvas: React.FC<ConstellationCanvasProps> = ({
     return () => {
       cancelAnimationFrame(animationId);
       resizeObserver.disconnect();
+      if (parent) {
+        parent.removeEventListener('mousemove', handleMouseMove);
+        parent.removeEventListener('mouseleave', handleMouseLeave);
+        parent.removeEventListener('touchmove', handleTouchMove);
+        parent.removeEventListener('touchend', handleTouchEnd);
+        parent.removeEventListener('touchcancel', handleTouchEnd);
+      }
     };
   }, []);
 

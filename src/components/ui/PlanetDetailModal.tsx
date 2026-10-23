@@ -21,7 +21,6 @@ export const PlanetDetailModal: React.FC<PlanetDetailModalProps> = ({
   currentLang = 'vi',
 }) => {
   const [copiedKey, setCopiedKey] = useState<string | null>(null);
-  const [mousePos, setMousePos] = useState<{ x: number; y: number } | null>(null);
 
   const t = TRANSLATIONS[currentLang].modal;
 
@@ -73,47 +72,37 @@ export const PlanetDetailModal: React.FC<PlanetDetailModalProps> = ({
     }
   };
 
-  const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
-    const rect = e.currentTarget.getBoundingClientRect();
-    setMousePos({
-      x: e.clientX - rect.left,
-      y: e.clientY - rect.top,
-    });
-  };
-
-  const handleMouseLeave = () => {
-    setMousePos(null);
-  };
-
   return (
     <div
       onClick={onClose}
       className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md animate-in fade-in duration-200 cursor-pointer"
       title={t.closeHint}
     >
+      {/* Outer Fixed Window Frame */}
       <div
         onClick={(e) => e.stopPropagation()}
-        onWheel={(e) => e.stopPropagation()}
-        onMouseMove={handleMouseMove}
-        onMouseLeave={handleMouseLeave}
-        className="relative w-full max-w-2xl rounded-3xl hologram-panel border border-cyan-400/50 p-6 sm:p-8 shadow-[0_0_50px_rgba(0,243,255,0.25)] max-h-[85vh] overflow-y-auto modal-scrollbar cursor-default select-text"
+        className="relative w-full max-w-2xl rounded-3xl hologram-panel border border-cyan-400/50 shadow-[0_0_50px_rgba(0,243,255,0.25)] max-h-[85vh] flex flex-col overflow-hidden cursor-default select-text"
       >
-        {/* Interactive Constellation / Particle Network Background */}
-        <ConstellationCanvas mouseX={mousePos?.x} mouseY={mousePos?.y} />
+        {/* Interactive Constellation / Particle Network Background (Stationary to window, 100% sync on scroll) */}
+        <ConstellationCanvas />
 
-        {/* Close Button */}
+        {/* Pinned Close Button (Fixed to top-right of window, always accessible) */}
         <button
           onClick={onClose}
-          className="absolute top-5 right-5 p-2 rounded-xl bg-slate-900/90 border border-cyan-500/40 text-cyan-400 hover:bg-cyan-950/80 hover:border-cyan-300 hover:text-white transition-all cursor-pointer z-20 shadow-[0_0_15px_rgba(0,243,255,0.2)]"
+          className="absolute top-5 right-5 p-2 rounded-xl bg-slate-900/90 border border-cyan-500/40 text-cyan-400 hover:bg-cyan-950/80 hover:border-cyan-300 hover:text-white transition-all cursor-pointer z-30 shadow-[0_0_15px_rgba(0,243,255,0.2)]"
           aria-label={t.closeWindow}
           title={t.closeHint}
         >
           <X className="w-5 h-5" />
         </button>
 
-        <div className="relative z-10 space-y-5">
+        {/* Inner Scrollable Container */}
+        <div
+          onWheel={(e) => e.stopPropagation()}
+          className="relative z-10 w-full overflow-y-auto modal-scrollbar p-6 sm:p-8 space-y-5 flex-1 min-h-0"
+        >
           {/* Modal Header */}
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-3 pr-12">
             <div className="p-2.5 rounded-xl bg-cyan-950/80 border border-cyan-400/40">
               {getPlanetIcon(planet.id)}
             </div>
