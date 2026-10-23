@@ -39,10 +39,10 @@ export const SolarHeader: React.FC<SolarHeaderProps> = ({
       onClick={(e) => e.stopPropagation()}
       className="relative z-30 pt-4 sm:pt-5 px-4 sm:px-8 max-w-7xl mx-auto w-full select-none"
     >
-      {/* Top Navigation Row */}
-      <div className="flex items-center justify-between text-xs tracking-wider text-slate-300 font-sans">
+      {/* Top Navigation Row: 3-Column Mathematically Centered Grid */}
+      <div className="grid grid-cols-[1fr_auto_1fr] items-center text-xs tracking-wider text-slate-300 font-sans">
         {/* Left Nav: Home, About, Contact */}
-        <div className="flex items-center gap-5 sm:gap-8">
+        <div className="flex items-center justify-start gap-4 sm:gap-7">
           <button
             onClick={(e) => handleNavClick(e, 'home')}
             className={`hover:text-cyan-300 transition-colors cursor-pointer ${
@@ -70,9 +70,9 @@ export const SolarHeader: React.FC<SolarHeaderProps> = ({
           </button>
         </div>
 
-        {/* Center Brand / Logo: P H A M   A N // V M U */}
+        {/* Center Brand / Logo: P H A M   A N // V M U (Perfect Dead Center) */}
         <div
-          className="text-center cursor-pointer"
+          className="text-center px-4 cursor-pointer justify-self-center"
           onClick={(e) => handleNavClick(e, 'home')}
         >
           <div className="font-orbitron font-extrabold tracking-[0.25em] text-white text-sm sm:text-base leading-none">
@@ -84,7 +84,7 @@ export const SolarHeader: React.FC<SolarHeaderProps> = ({
         </div>
 
         {/* Right Nav: VMU, Knowledge, Goals + Sound */}
-        <div className="flex items-center gap-4 sm:gap-7">
+        <div className="flex items-center justify-end gap-3.5 sm:gap-6">
           <button
             onClick={(e) => handleNavClick(e, 'vmu')}
             className={`hidden sm:inline hover:text-cyan-300 transition-colors cursor-pointer ${
@@ -116,7 +116,7 @@ export const SolarHeader: React.FC<SolarHeaderProps> = ({
               e.stopPropagation();
               onToggleSound();
             }}
-            className="p-1 rounded text-slate-400 hover:text-cyan-300 transition-colors cursor-pointer"
+            className="p-1 rounded text-slate-400 hover:text-cyan-300 transition-colors cursor-pointer ml-1"
             title={isMuted ? t.header.soundOff : t.header.soundOn}
           >
             {isMuted ? <VolumeX className="w-4 h-4" /> : <Volume2 className="w-4 h-4 text-cyan-400" />}
@@ -134,11 +134,11 @@ export const SolarHeader: React.FC<SolarHeaderProps> = ({
         </p>
       </div>
 
-      {/* Horizontal Quick Info Bar - Centered & Glass-Frosted */}
-      <div className="mt-2.5 sm:mt-3 flex justify-center">
-        <div className="inline-flex flex-wrap items-center justify-center gap-x-4 sm:gap-x-6 gap-y-1 px-4 sm:px-6 py-1.5 rounded-2xl bg-[#020612]/75 backdrop-blur-md border border-cyan-500/25 shadow-[0_4px_20px_rgba(0,0,0,0.5)]">
+      {/* Horizontal Quick Info Bar - Single Symmetrical Row (Zero Awkward Wrapping) */}
+      <div className="mt-2.5 sm:mt-3 flex justify-center px-2">
+        <div className="inline-flex items-center justify-center gap-x-3 sm:gap-x-5 px-4 sm:px-6 py-1.5 rounded-2xl bg-[#020612]/80 backdrop-blur-md border border-cyan-500/25 shadow-[0_4px_20px_rgba(0,0,0,0.5)] whitespace-nowrap overflow-x-auto modal-scrollbar max-w-full">
           {activePlanet.telemetry.map((item, idx) => (
-            <div key={idx} className="flex items-center gap-1.5 text-center">
+            <div key={idx} className="flex items-center gap-1.5 shrink-0">
               <span className="text-[9px] sm:text-[10px] font-mono-code text-cyan-400/80 uppercase">
                 {item.label}:
               </span>
@@ -146,7 +146,7 @@ export const SolarHeader: React.FC<SolarHeaderProps> = ({
                 {item.value}
               </span>
               {idx < activePlanet.telemetry.length - 1 && (
-                <span className="hidden sm:inline-block text-cyan-500/30 ml-3 sm:ml-4 font-thin select-none">|</span>
+                <span className="text-cyan-500/30 ml-3 sm:ml-5 font-thin select-none">|</span>
               )}
             </div>
           ))}

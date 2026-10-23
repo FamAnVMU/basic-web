@@ -50,10 +50,9 @@ export const SOLAR_PLANETS_VI: PlanetData[] = [
     orbitSpeed: 0,
     textureType: 'earth',
     telemetry: [
-      { label: 'Họ và tên', value: 'Phạm An' },
+      { label: 'Sinh viên', value: 'K65 CNTT' },
       { label: 'Trường đào tạo', value: 'ĐH Hàng Hải Việt Nam' },
-      { label: 'Chuyên ngành', value: 'Công Nghệ Thông Tin' },
-      { label: 'Niên khóa', value: 'Khóa K65 (2023 - 2027)' },
+      { label: 'Địa điểm', value: 'Hải Phòng, VN' },
       { label: 'Email', value: 'phama6372@gmail.com' },
     ],
     description:
@@ -113,11 +112,10 @@ export const SOLAR_PLANETS_VI: PlanetData[] = [
     orbitSpeed: 0.18,
     textureType: 'gold',
     telemetry: [
-      { label: 'Cơ sở đào tạo', value: 'ĐH Hàng Hải Việt Nam' },
+      { label: 'Cơ sở đào tạo', value: 'ĐH Hàng Hải VN' },
       { label: 'Khoa chuyên môn', value: 'Công Nghệ Thông Tin' },
-      { label: 'Khóa sinh viên', value: 'Khóa K65 (Năm 3)' },
-      { label: 'Hệ đào tạo', value: 'Kỹ Sư Chính Quy' },
-      { label: 'Địa chỉ trường', value: '484 Lạch Tray, Hải Phòng' },
+      { label: 'Khóa học', value: 'Khóa K65 (Năm 3)' },
+      { label: 'Địa chỉ', value: '484 Lạch Tray, Hải Phòng' },
     ],
     description:
       'Trường Đại học Hàng hải Việt Nam (VMU) là ngôi trường giàu truyền thống tại Hải Phòng, nơi mình đang được trang bị cả về kiến thức chuyên môn lẫn tác phong kỷ luật. Nếp sống nghiêm túc và tinh thần vượt khó tại VMU giúp mình xây dựng thói quen làm việc trách nhiệm, cẩn trọng và kiên trì trong từng bài toán lập trình.',
@@ -175,8 +173,7 @@ export const SOLAR_PLANETS_VI: PlanetData[] = [
       { label: 'Ngôn ngữ', value: 'C / C++, Python cơ bản' },
       { label: 'Cơ sở dữ liệu', value: 'SQL / MySQL' },
       { label: 'Tư duy cốt lõi', value: 'OOP, Cấu Trúc Dữ Liệu' },
-      { label: 'Hệ thống', value: 'Hệ Điều Hành & Mạng Máy Tính' },
-      { label: 'Tự nghiên cứu', value: 'Web Frontend, Git & GitHub' },
+      { label: 'Mở rộng', value: 'Web Frontend, Git & GitHub' },
     ],
     description:
       'Trong chương trình học tại trường, mình luôn ưu tiên nắm thật chắc các nguyên lý cốt lõi: từ tư duy giải thuật với C/C++, lập trình hướng đối tượng (OOP) đến thiết kế cơ sở dữ liệu quan hệ và mạng máy tính. Bên cạnh đó, mình chủ động tự học thêm về lập trình Web hiện đại và rèn luyện kỹ năng quản lý mã nguồn với Git.',
@@ -231,11 +228,10 @@ export const SOLAR_PLANETS_VI: PlanetData[] = [
     orbitSpeed: 0.08,
     textureType: 'emerald',
     telemetry: [
-      { label: 'Mục tiêu số 1', value: 'Tìm vị trí thực tập (Intern)' },
-      { label: 'Vị trí hướng tới', value: 'Thực tập sinh Web / Phần mềm' },
-      { label: 'Thời gian', value: 'Linh hoạt theo lịch học K65' },
-      { label: 'Thái độ', value: 'Chăm chỉ, cầu thị, lắng nghe' },
-      { label: 'Tâm thế', value: 'Sẵn sàng học hỏi từ việc nhỏ' },
+      { label: 'Mục tiêu', value: 'Tìm vị trí thực tập (Intern)' },
+      { label: 'Vị trí', value: 'Web / Software Dev' },
+      { label: 'Lịch học', value: 'Linh hoạt theo K65' },
+      { label: 'Thái độ', value: 'Cầu thị, sẵn sàng học hỏi' },
     ],
     description:
       'Bước sang năm thứ 3, mục tiêu lớn nhất của mình là tìm được một vị trí thực tập phù hợp. Mình mong muốn được gia nhập một đội ngũ thực tế để học hỏi quy trình phát triển phần mềm bài bản, trau dồi tác phong làm việc chuyên nghiệp từ các anh chị đi trước và đóng góp sự nhiệt huyết của bản thân.',
@@ -294,7 +290,6 @@ export const SOLAR_PLANETS_VI: PlanetData[] = [
       { label: 'GitHub', value: 'github.com/FamAnVMU' },
       { label: 'Facebook', value: 'pham.an.123114' },
       { label: 'Discord', value: 'FamAnVMU' },
-      { label: 'Phản hồi', value: 'Sẵn sàng kết nối' },
     ],
     description:
       'Mình luôn sẵn lòng đón nhận mọi cơ hội kết nối, lời khuyên về nghề nghiệp hoặc đơn giản là trò chuyện về công nghệ và học tập. Bạn có thể gửi email hoặc nhắn tin cho mình qua các kênh bên dưới, mình sẽ phản hồi sớm nhất có thể!',
@@ -360,10 +355,9 @@ export const SOLAR_PLANETS_EN: PlanetData[] = [
     orbitSpeed: 0,
     textureType: 'earth',
     telemetry: [
-      { label: 'Full Name', value: 'Pham An' },
+      { label: 'Student', value: 'K65 IT Undergrad' },
       { label: 'University', value: 'Vietnam Maritime Univ' },
-      { label: 'Major', value: 'Information Technology' },
-      { label: 'Cohort', value: 'K65 (2023 - 2027)' },
+      { label: 'Location', value: 'Hai Phong, VN' },
       { label: 'Email', value: 'phama6372@gmail.com' },
     ],
     description:
@@ -425,9 +419,8 @@ export const SOLAR_PLANETS_EN: PlanetData[] = [
     telemetry: [
       { label: 'University', value: 'Vietnam Maritime Univ' },
       { label: 'Faculty', value: 'Information Technology' },
-      { label: 'Cohort', value: 'Cohort K65 (Year 3)' },
-      { label: 'Degree', value: 'Engineer Degree' },
-      { label: 'Main Campus', value: '484 Lach Tray, Hai Phong' },
+      { label: 'Cohort', value: 'K65 (2023 - 2027)' },
+      { label: 'Campus', value: '484 Lach Tray, Hai Phong' },
     ],
     description:
       'Vietnam Maritime University (VMU) is a premier national university with a proud heritage in Hai Phong. The university environment has trained me in personal discipline, resilience, and a high sense of responsibility - qualities that I believe are essential for any aspiring software engineer.',
@@ -482,11 +475,10 @@ export const SOLAR_PLANETS_EN: PlanetData[] = [
     textureType: 'violet',
     hasRings: true,
     telemetry: [
-      { label: 'Languages', value: 'C / C++, Basic Python' },
+      { label: 'Languages', value: 'C / C++, Python' },
       { label: 'Databases', value: 'SQL / MySQL' },
-      { label: 'Core Paradigms', value: 'OOP, Data Structures' },
-      { label: 'Systems', value: 'Operating Systems & Networks' },
-      { label: 'Self-study', value: 'Web Frontend, Git & GitHub' },
+      { label: 'Core', value: 'OOP, Data Structures' },
+      { label: 'Expanded', value: 'Web Frontend & Git' },
     ],
     description:
       'Throughout my academic program at VMU, I prioritize mastering fundamental concepts: from algorithm design in C/C++, Object-Oriented Programming (OOP) to relational database architecture and networking. In addition, I proactively learn modern web technologies and clean version control with Git.',
@@ -541,11 +533,10 @@ export const SOLAR_PLANETS_EN: PlanetData[] = [
     orbitSpeed: 0.08,
     textureType: 'emerald',
     telemetry: [
-      { label: 'Top Priority', value: 'Secure Software/Web Internship' },
-      { label: 'Target Role', value: 'Web / Software Dev Intern' },
-      { label: 'Schedule', value: 'Flexible Around K65 Classes' },
-      { label: 'Work Ethic', value: 'Diligent, Receptive, Humble' },
-      { label: 'Mindset', value: 'Eager to Learn from Scratch' },
+      { label: 'Objective', value: 'Software/Web Intern' },
+      { label: 'Role', value: 'Web / Software Dev' },
+      { label: 'Schedule', value: 'Flexible with K65 classes' },
+      { label: 'Mindset', value: 'Growth-minded & eager to learn' },
     ],
     description:
       'Entering my 3rd year, my primary objective is securing an engineering internship. I am eager to join a real-world software team to learn standard development workflows, receive mentorship from experienced engineers, and contribute my youthful energy and commitment.',
@@ -604,7 +595,6 @@ export const SOLAR_PLANETS_EN: PlanetData[] = [
       { label: 'GitHub', value: 'github.com/FamAnVMU' },
       { label: 'Facebook', value: 'pham.an.123114' },
       { label: 'Discord', value: 'FamAnVMU' },
-      { label: 'Availability', value: 'Open to Connect' },
     ],
     description:
       'I deeply value every opportunity to connect, receive career advice, or simply discuss technology and university life. Feel free to drop me an email or message through any of the channels below - I will reply as promptly as possible!',
