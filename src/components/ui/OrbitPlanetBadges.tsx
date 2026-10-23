@@ -71,7 +71,7 @@ export const OrbitPlanetBadges: React.FC<OrbitPlanetBadgesProps> = ({
       {/* Dynamic Active Planet HUD Badge - Tự động luân chuyển theo hành tinh hiện tại */}
       <button
         onClick={handleClick}
-        className="pointer-events-auto group flex items-center gap-3 sm:gap-3.5 transition-all duration-500 transform hover:scale-105 cursor-pointer text-left"
+        className="pointer-events-auto group flex items-center gap-3 sm:gap-3.5 px-3.5 py-2.5 rounded-2xl bg-[#020612]/80 backdrop-blur-md border border-cyan-500/25 shadow-[0_8px_32px_rgba(0,0,0,0.6)] transition-all duration-300 transform hover:scale-105 hover:border-cyan-400/50 cursor-pointer text-left"
         title={t.badgeHint.replace('{name}', activePlanet.name)}
       >
         {/* Dynamic Glowing Orbit Dot */}

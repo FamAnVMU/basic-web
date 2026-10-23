@@ -124,39 +124,44 @@ export const SolarHeader: React.FC<SolarHeaderProps> = ({
         </div>
       </div>
 
-      {/* Hero Display Title: Large Spaced Uppercase */}
+      {/* Hero Display Title: Clean & Balanced */}
       <div className="text-center mt-2.5 sm:mt-3.5 transition-all duration-500">
-        <h1 className="font-orbitron font-medium text-lg sm:text-2xl lg:text-3xl text-white tracking-[0.12em] sm:tracking-[0.18em] uppercase text-cyan-glow-subtle">
+        <h1 className="font-orbitron font-bold text-lg sm:text-2xl lg:text-3xl text-white tracking-[0.08em] sm:tracking-[0.14em] uppercase text-cyan-glow-subtle">
           {activePlanet.displayTitle}
         </h1>
-        <p className="text-[9px] sm:text-[10px] font-mono-code text-cyan-400/90 tracking-wider uppercase mt-0.5">
+        <p className="text-[10px] sm:text-xs font-sans text-cyan-300/90 tracking-wide mt-1">
           {activePlanet.subtitle}
         </p>
       </div>
 
-      {/* Horizontal Telemetry Stats Row */}
-      <div className="mt-2.5 sm:mt-3 flex flex-wrap items-center justify-center gap-x-5 sm:gap-x-9 gap-y-1.5 text-center">
-        {activePlanet.telemetry.map((item, idx) => (
-          <div key={idx} className="space-y-0.5">
-            <div className="text-[8px] sm:text-[9px] font-mono-code text-slate-400 tracking-[0.12em] uppercase">
-              {item.label}
+      {/* Horizontal Quick Info Bar - Centered & Glass-Frosted */}
+      <div className="mt-2.5 sm:mt-3 flex justify-center">
+        <div className="inline-flex flex-wrap items-center justify-center gap-x-4 sm:gap-x-6 gap-y-1 px-4 sm:px-6 py-1.5 rounded-2xl bg-[#020612]/75 backdrop-blur-md border border-cyan-500/25 shadow-[0_4px_20px_rgba(0,0,0,0.5)]">
+          {activePlanet.telemetry.map((item, idx) => (
+            <div key={idx} className="flex items-center gap-1.5 text-center">
+              <span className="text-[9px] sm:text-[10px] font-mono-code text-cyan-400/80 uppercase">
+                {item.label}:
+              </span>
+              <span className="text-[11px] sm:text-xs font-medium text-slate-100">
+                {item.value}
+              </span>
+              {idx < activePlanet.telemetry.length - 1 && (
+                <span className="hidden sm:inline-block text-cyan-500/30 ml-3 sm:ml-4 font-thin select-none">|</span>
+              )}
             </div>
-            <div className="text-[11px] sm:text-xs font-sans font-medium text-slate-100">
-              {item.value}
-            </div>
-          </div>
-        ))}
+          ))}
+        </div>
       </div>
 
       {/* Quick Action Control Bar: Switch between Focus & Overview */}
-      <div className="mt-2 sm:mt-2.5 flex items-center justify-center gap-3">
+      <div className="mt-2.5 sm:mt-3 flex items-center justify-center gap-3">
         {/* Toggle Overview / Focus Button */}
         <button
           onClick={onToggleOverview}
-          className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-mono-code transition-all cursor-pointer ${
+          className={`inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-xs font-mono-code transition-all cursor-pointer ${
             isOverview
               ? 'bg-cyan-500 text-slate-950 font-bold shadow-[0_0_15px_rgba(0,243,255,0.4)]'
-              : 'bg-slate-900/70 hover:bg-cyan-950/60 border border-cyan-400/30 text-cyan-300'
+              : 'bg-slate-900/80 hover:bg-cyan-950/70 border border-cyan-400/35 text-cyan-300 hover:text-white'
           }`}
           title={t.header.viewTooltip}
         >
@@ -167,7 +172,7 @@ export const SolarHeader: React.FC<SolarHeaderProps> = ({
         {/* Open Details Button */}
         <button
           onClick={onOpenDetails}
-          className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-cyan-950/40 hover:bg-cyan-900/60 border border-cyan-400/40 text-cyan-300 hover:text-white text-xs font-mono-code transition-all shadow-[0_0_15px_rgba(0,243,255,0.2)] cursor-pointer"
+          className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full bg-cyan-950/60 hover:bg-cyan-900/80 border border-cyan-400/40 text-cyan-300 hover:text-white text-xs font-mono-code transition-all shadow-[0_0_15px_rgba(0,243,255,0.2)] cursor-pointer"
         >
           <Info className="w-3.5 h-3.5 text-cyan-400" />
           <span>{t.header.dossierDetails}</span>

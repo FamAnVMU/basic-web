@@ -367,7 +367,7 @@ export const MobilePortfolioView: React.FC<MobilePortfolioViewProps> = ({
                   >
                     <div className="flex items-center gap-2 truncate">
                       <Mail className="w-3.5 h-3.5 text-cyan-400 shrink-0" />
-                      <span className="truncate">Email An</span>
+                      <span className="truncate">{currentLang === 'vi' ? 'Gửi Email' : 'Email Me'}</span>
                     </div>
                     {copiedKey === 'hero-email' ? (
                       <Check className="w-3.5 h-3.5 text-emerald-400 shrink-0" />
@@ -478,7 +478,7 @@ export const MobilePortfolioView: React.FC<MobilePortfolioViewProps> = ({
                     duration={600}
                   >
                     <div className="p-3.5 rounded-2xl bg-slate-900/80 border border-amber-500/20 hover:border-amber-400/50 space-y-1 transition-colors">
-                      <div className="font-orbitron font-semibold text-xs text-amber-300 flex items-center gap-2">
+                      <div className="font-sans font-semibold text-xs text-amber-300 flex items-center gap-2">
                         <span className="w-2 h-2 rounded-full bg-amber-400 shadow-[0_0_6px_#f59e0b]" />
                         <span>{sat.title}</span>
                       </div>
@@ -585,7 +585,7 @@ export const MobilePortfolioView: React.FC<MobilePortfolioViewProps> = ({
                     duration={600}
                   >
                     <div className="p-3.5 rounded-2xl bg-slate-900/80 border border-purple-500/20 hover:border-purple-400/50 space-y-1 transition-colors">
-                      <div className="font-orbitron font-semibold text-xs text-purple-300 flex items-center gap-2">
+                      <div className="font-sans font-semibold text-xs text-purple-300 flex items-center gap-2">
                         <span className="w-2 h-2 rounded-full bg-purple-400 shadow-[0_0_6px_#a855f7]" />
                         <span>{sat.title}</span>
                       </div>
@@ -640,7 +640,7 @@ export const MobilePortfolioView: React.FC<MobilePortfolioViewProps> = ({
                     <span className="absolute left-1.5 top-1 w-3.5 h-3.5 rounded-full bg-slate-950 border-2 border-emerald-400 flex items-center justify-center text-[8px] font-bold text-emerald-300 -translate-x-1/2">
                       1
                     </span>
-                    <div className="font-orbitron font-semibold text-xs text-emerald-300">
+                    <div className="font-sans font-semibold text-xs text-emerald-300">
                       {t.mobile.roadmap.step1Title}
                     </div>
                     <p className="text-[11px] text-slate-300 leading-relaxed font-sans">
@@ -653,7 +653,7 @@ export const MobilePortfolioView: React.FC<MobilePortfolioViewProps> = ({
                     <span className="absolute left-1.5 top-1 w-3.5 h-3.5 rounded-full bg-slate-950 border-2 border-emerald-400 flex items-center justify-center text-[8px] font-bold text-emerald-300 -translate-x-1/2">
                       2
                     </span>
-                    <div className="font-orbitron font-semibold text-xs text-emerald-300">
+                    <div className="font-sans font-semibold text-xs text-emerald-300">
                       {t.mobile.roadmap.step2Title}
                     </div>
                     <p className="text-[11px] text-slate-300 leading-relaxed font-sans">
@@ -666,7 +666,7 @@ export const MobilePortfolioView: React.FC<MobilePortfolioViewProps> = ({
                     <span className="absolute left-1.5 top-1 w-3.5 h-3.5 rounded-full bg-emerald-500 border-2 border-emerald-300 shadow-[0_0_8px_#10b981] flex items-center justify-center text-[8px] font-bold text-slate-950 -translate-x-1/2">
                       3
                     </span>
-                    <div className="font-orbitron font-semibold text-xs text-emerald-200">
+                    <div className="font-sans font-semibold text-xs text-emerald-200">
                       {t.mobile.roadmap.step3Title}
                     </div>
                     <p className="text-[11px] text-slate-300 leading-relaxed font-sans">
@@ -699,7 +699,7 @@ export const MobilePortfolioView: React.FC<MobilePortfolioViewProps> = ({
                     duration={600}
                   >
                     <div className="p-3.5 rounded-2xl bg-slate-900/80 border border-emerald-500/20 hover:border-emerald-400/50 space-y-1 transition-colors">
-                      <div className="font-orbitron font-semibold text-xs text-emerald-300 flex items-center gap-2">
+                      <div className="font-sans font-semibold text-xs text-emerald-300 flex items-center gap-2">
                         <span className="w-2 h-2 rounded-full bg-emerald-400 shadow-[0_0_6px_#10b981]" />
                         <span>{sat.title}</span>
                       </div>

@@ -89,16 +89,16 @@ export const SatelliteOverlay: React.FC<SatelliteOverlayProps> = ({
               </div>
 
               <div>
-                <div className="font-orbitron font-medium text-[10.5px] text-white group-hover:text-cyan-300 transition-colors flex items-center gap-1 leading-tight">
+                <div className="font-sans font-medium text-[11px] text-white group-hover:text-cyan-300 transition-colors flex items-center gap-1 leading-tight">
                   <span className="truncate max-w-[140px]">{sat.satellite.title}</span>
                   {sat.satellite.action === 'link' && (
-                    <ExternalLink className="w-2 h-2 text-cyan-400 opacity-70" />
+                    <ExternalLink className="w-2.5 h-2.5 text-cyan-400 opacity-70" />
                   )}
                   {sat.satellite.action === 'copy' && (
-                    isCopied ? <Check className="w-2 h-2 text-emerald-400" /> : <Copy className="w-2 h-2 text-cyan-400 opacity-70" />
+                    isCopied ? <Check className="w-2.5 h-2.5 text-emerald-400" /> : <Copy className="w-2.5 h-2.5 text-cyan-400 opacity-70" />
                   )}
                 </div>
-                <div className="text-[8px] font-mono-code text-cyan-400/80 leading-tight">
+                <div className="text-[8.5px] font-mono-code text-cyan-400/80 leading-tight">
                   {sat.satellite.subtitle}
                 </div>
               </div>

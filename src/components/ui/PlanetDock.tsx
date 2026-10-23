@@ -32,7 +32,7 @@ export const PlanetDock: React.FC<PlanetDockProps> = ({
       className="fixed bottom-5 inset-x-0 z-30 flex flex-col items-center gap-1.5 px-4 select-none pointer-events-none"
     >
       {/* Scroll Navigation Hint */}
-      <div className="text-[9px] font-mono-code text-cyan-400/80 tracking-widest uppercase">
+      <div className="text-[10px] font-mono-code text-cyan-300/80 tracking-wider">
         {t.dock.scrollHint}
       </div>
 

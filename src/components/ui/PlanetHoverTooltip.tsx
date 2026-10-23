@@ -25,20 +25,20 @@ export const PlanetHoverTooltip: React.FC<PlanetHoverTooltipProps> = ({ hoverInf
     >
       <div className="relative px-3.5 py-2 rounded-xl bg-[#020612]/90 backdrop-blur-md border border-cyan-400/70 shadow-[0_0_25px_rgba(0,243,255,0.4)] text-center min-w-[180px]">
         {/* Top Target Indicator */}
-        <div className="flex items-center justify-center gap-1.5 text-[9px] font-mono-code text-cyan-400 uppercase tracking-widest mb-0.5">
+        <div className="flex items-center justify-center gap-1.5 text-[9px] font-mono-code text-cyan-400 uppercase tracking-wider mb-0.5">
           <span className="w-1.5 h-1.5 rounded-full bg-cyan-400 animate-ping" />
-          <span>MỤC TIÊU TIẾP CẬN</span>
+          <span>KHÁM PHÁ</span>
         </div>
 
         <div className="font-orbitron font-bold text-sm text-white tracking-wider">
           {hoverInfo.name}
         </div>
-        <div className="text-[10px] font-mono-code text-slate-300 truncate max-w-[220px]">
+        <div className="text-[10px] font-sans text-slate-300 truncate max-w-[220px]">
           {hoverInfo.subtitle}
         </div>
 
-        <div className="mt-1 pt-1 border-t border-cyan-500/20 text-[9px] font-mono-code text-cyan-300">
-          ● Bấm vào hành tinh để xem toàn bộ thông tin
+        <div className="mt-1 pt-1 border-t border-cyan-500/20 text-[9px] font-sans text-cyan-300">
+          Bấm để di chuyển đến hành tinh này
         </div>
 
         {/* Pointer Triangle */}
