@@ -10,9 +10,12 @@ interface NodePoint {
   y: number;
   vx: number;
   vy: number;
+  baseVx: number;
+  baseVy: number;
   radius: number;
   pulse: number;
   pulseSpeed: number;
+  glowEnergy: number; // 0 (idle) to 1 (excited near cursor)
 }
 
 export const ConstellationCanvas: React.FC<ConstellationCanvasProps> = ({
@@ -54,7 +57,6 @@ export const ConstellationCanvas: React.FC<ConstellationCanvasProps> = ({
     }
 
     // Direct native mouse & touch tracking on parent element
-    // This eliminates React re-renders and ensures 1:1 sync with the modal frame regardless of inner scroll position
     const handleMouseMove = (e: MouseEvent) => {
       if (!parent) return;
       const rect = parent.getBoundingClientRect();
@@ -99,19 +101,24 @@ export const ConstellationCanvas: React.FC<ConstellationCanvasProps> = ({
       parent.addEventListener('touchcancel', handleTouchEnd, { passive: true });
     }
 
-    // Generate constellation nodes
+    // Generate constellation nodes with individual baseline velocities & reactive energy states
     const nodeCount = Math.max(30, Math.min(55, Math.floor((width * height) / 9000)));
     const nodes: NodePoint[] = [];
 
     for (let i = 0; i < nodeCount; i++) {
+      const bvx = (Math.random() - 0.5) * 0.45;
+      const bvy = (Math.random() - 0.5) * 0.45;
       nodes.push({
         x: Math.random() * width,
         y: Math.random() * height,
-        vx: (Math.random() - 0.5) * 0.4,
-        vy: (Math.random() - 0.5) * 0.4,
+        vx: bvx,
+        vy: bvy,
+        baseVx: bvx,
+        baseVy: bvy,
         radius: 1.8 + Math.random() * 1.6,
         pulse: Math.random() * Math.PI * 2,
         pulseSpeed: 0.02 + Math.random() * 0.02,
+        glowEnergy: 0,
       });
     }
 
@@ -121,9 +128,57 @@ export const ConstellationCanvas: React.FC<ConstellationCanvasProps> = ({
       animationId = requestAnimationFrame(render);
       ctx.clearRect(0, 0, width, height);
 
-      // 1. Move & Update Nodes
+      const mX = mouseRef.current.x;
+      const mY = mouseRef.current.y;
+      const mouseRadius = 130;
+
+      // 1. Move & Update Nodes (Dynamic Orbit, Excitation & Reactive Fluid Motion)
       for (let i = 0; i < nodes.length; i++) {
         const p = nodes[i];
+        let targetEnergy = 0;
+
+        if (mX !== null && mY !== null && mX >= 0 && mX <= width && mY >= 0 && mY <= height) {
+          const dx = mX - p.x;
+          const dy = mY - p.y;
+          const dist = Math.sqrt(dx * dx + dy * dy);
+
+          if (dist < mouseRadius) {
+            // Proximity intensity: 1 at cursor, 0 at outer boundary
+            const proximity = 1 - dist / mouseRadius;
+            targetEnergy = proximity;
+
+            // Celestial Orbital Swirl (combining gentle gravitational pull + tangential orbital curve)
+            const angle = Math.atan2(dy, dx);
+            const tangent = angle + Math.PI / 2;
+
+            const pullForce = proximity * 0.12;
+            const swirlForce = proximity * 0.18;
+
+            p.vx += Math.cos(angle) * pullForce + Math.cos(tangent) * swirlForce;
+            p.vy += Math.sin(angle) * pullForce + Math.sin(tangent) * swirlForce;
+
+            // Cushion zone: prevent colliding directly into cursor tip (< 26px)
+            if (dist < 26 && dist > 0) {
+              const pushBack = (26 - dist) * 0.12;
+              p.vx -= (dx / dist) * pushBack;
+              p.vy -= (dy / dist) * pushBack;
+            }
+
+            // Magnetic damping so particles orbit smoothly without flying away
+            p.vx *= 0.95;
+            p.vy *= 0.95;
+          }
+        }
+
+        // Smooth energy transition (lerp)
+        p.glowEnergy += (targetEnergy - p.glowEnergy) * 0.12;
+
+        // When releasing from mouse field, smoothly return to base cosmic drift
+        if (targetEnergy === 0) {
+          p.vx += (p.baseVx - p.vx) * 0.03;
+          p.vy += (p.baseVy - p.vy) * 0.03;
+        }
+
         p.x += p.vx;
         p.y += p.vy;
 
@@ -131,23 +186,28 @@ export const ConstellationCanvas: React.FC<ConstellationCanvasProps> = ({
         if (p.x <= 8) {
           p.x = 8;
           p.vx = Math.abs(p.vx);
+          p.baseVx = Math.abs(p.baseVx);
         } else if (p.x >= width - 8) {
           p.x = width - 8;
           p.vx = -Math.abs(p.vx);
+          p.baseVx = -Math.abs(p.baseVx);
         }
 
         if (p.y <= 8) {
           p.y = 8;
           p.vy = Math.abs(p.vy);
+          p.baseVy = Math.abs(p.baseVy);
         } else if (p.y >= height - 8) {
           p.y = height - 8;
           p.vy = -Math.abs(p.vy);
+          p.baseVy = -Math.abs(p.baseVy);
         }
 
-        p.pulse += p.pulseSpeed;
+        // Energized pulsation: accelerates up to 3.5x when excited by cursor
+        p.pulse += p.pulseSpeed * (1 + p.glowEnergy * 2.5);
       }
 
-      // 2. Draw Interconnecting Constellation Lines
+      // 2. Draw Interconnecting Constellation Lines with Resonance Lighting
       const maxConnectDist = 95;
       for (let i = 0; i < nodes.length; i++) {
         const p1 = nodes[i];
@@ -158,9 +218,15 @@ export const ConstellationCanvas: React.FC<ConstellationCanvasProps> = ({
           const dist = Math.sqrt(dx * dx + dy * dy);
 
           if (dist < maxConnectDist) {
-            const alpha = (1 - dist / maxConnectDist) * 0.35;
-            ctx.strokeStyle = `rgba(0, 243, 255, ${alpha.toFixed(3)})`;
-            ctx.lineWidth = 0.85;
+            // Resonance effect: lines connecting energized nodes glow with bright cyber aura
+            const resonance = Math.max(p1.glowEnergy, p2.glowEnergy);
+            const baseAlpha = (1 - dist / maxConnectDist) * 0.35;
+            const alpha = Math.min(0.9, baseAlpha + resonance * 0.45);
+
+            ctx.strokeStyle = resonance > 0.3
+              ? `rgba(56, 189, 248, ${alpha.toFixed(3)})`
+              : `rgba(0, 243, 255, ${alpha.toFixed(3)})`;
+            ctx.lineWidth = 0.85 + resonance * 0.65;
             ctx.beginPath();
             ctx.moveTo(p1.x, p1.y);
             ctx.lineTo(p2.x, p2.y);
@@ -169,28 +235,12 @@ export const ConstellationCanvas: React.FC<ConstellationCanvasProps> = ({
         }
       }
 
-      // 3. Interactive Mouse Influence (No artificial lagging cursor dot; natural cosmic fluid reaction)
-      const mX = mouseRef.current.x;
-      const mY = mouseRef.current.y;
-      const mouseMaxDist = 115;
-
+      // 3. Subtle Ethereal Magnetic Flux Lines to Cursor Field (Without drawing artificial dots)
       if (mX !== null && mY !== null && mX >= 0 && mX <= width && mY >= 0 && mY <= height) {
         for (let i = 0; i < nodes.length; i++) {
           const p = nodes[i];
-          const dx = p.x - mX;
-          const dy = p.y - mY;
-          const dist = Math.sqrt(dx * dx + dy * dy);
-
-          // Gentle fluid repulsion when mouse approaches (makes the cosmic particles part naturally)
-          if (dist < 70 && dist > 0) {
-            const force = (70 - dist) / 70;
-            p.x += (dx / dist) * force * 0.5;
-            p.y += (dy / dist) * force * 0.5;
-          }
-
-          // Subtle ethereal connecting threads between nearby nodes and the interaction zone
-          if (dist < mouseMaxDist) {
-            const alpha = (1 - dist / mouseMaxDist) * 0.4;
+          if (p.glowEnergy > 0.08) {
+            const alpha = p.glowEnergy * 0.38;
             ctx.strokeStyle = `rgba(0, 243, 255, ${alpha.toFixed(3)})`;
             ctx.lineWidth = 0.75;
             ctx.beginPath();
@@ -201,25 +251,39 @@ export const ConstellationCanvas: React.FC<ConstellationCanvasProps> = ({
         }
       }
 
-      // 4. Draw Nodes with Outer Glow Halo (exact match to user reference screenshot)
+      // 4. Draw Reactive Nodes with Dynamic Halo Bloom & Supernova Excitation
       for (let i = 0; i < nodes.length; i++) {
         const p = nodes[i];
-        const r = p.radius + Math.sin(p.pulse) * 0.35;
+        const pulseFactor = Math.sin(p.pulse) * 0.35;
+        const energy = p.glowEnergy;
+        const currentRadius = (p.radius + pulseFactor) * (1 + energy * 0.4);
 
         ctx.save();
-        // Subtle translucent outer halo
+
+        // Outer Bloom Halo: Expands and illuminates dramatically when energized by cursor
+        const haloRadius = currentRadius * (2.6 + energy * 2.2);
+        const haloAlpha = 0.12 + energy * 0.32;
         ctx.beginPath();
-        ctx.arc(p.x, p.y, r * 2.6, 0, Math.PI * 2);
-        ctx.fillStyle = 'rgba(0, 243, 255, 0.12)';
+        ctx.arc(p.x, p.y, haloRadius, 0, Math.PI * 2);
+        ctx.fillStyle = `rgba(0, 243, 255, ${haloAlpha.toFixed(3)})`;
         ctx.fill();
 
-        // Bright cyber core
+        // Concentrated secondary energetic aura ring
+        if (energy > 0.2) {
+          ctx.beginPath();
+          ctx.arc(p.x, p.y, currentRadius * 1.8, 0, Math.PI * 2);
+          ctx.fillStyle = `rgba(56, 189, 248, ${(energy * 0.35).toFixed(3)})`;
+          ctx.fill();
+        }
+
+        // Bright cyber core with intensified glow
         ctx.beginPath();
-        ctx.arc(p.x, p.y, r, 0, Math.PI * 2);
-        ctx.fillStyle = 'rgba(56, 189, 248, 0.95)';
-        ctx.shadowBlur = 8;
+        ctx.arc(p.x, p.y, currentRadius, 0, Math.PI * 2);
+        ctx.fillStyle = energy > 0.5 ? '#e0f7ff' : 'rgba(56, 189, 248, 0.95)';
+        ctx.shadowBlur = 8 + energy * 16;
         ctx.shadowColor = '#00f3ff';
         ctx.fill();
+
         ctx.restore();
       }
     };
