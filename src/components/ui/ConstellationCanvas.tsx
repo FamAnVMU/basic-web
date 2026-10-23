@@ -130,18 +130,18 @@ export const ConstellationCanvas: React.FC<ConstellationCanvasProps> = ({
         // Bounce gently inside container bounds
         if (p.x <= 8) {
           p.x = 8;
-          p.vx *= -1;
+          p.vx = Math.abs(p.vx);
         } else if (p.x >= width - 8) {
           p.x = width - 8;
-          p.vx *= -1;
+          p.vx = -Math.abs(p.vx);
         }
 
         if (p.y <= 8) {
           p.y = 8;
-          p.vy *= -1;
+          p.vy = Math.abs(p.vy);
         } else if (p.y >= height - 8) {
           p.y = height - 8;
-          p.vy *= -1;
+          p.vy = -Math.abs(p.vy);
         }
 
         p.pulse += p.pulseSpeed;
@@ -169,10 +169,10 @@ export const ConstellationCanvas: React.FC<ConstellationCanvasProps> = ({
         }
       }
 
-      // 3. Draw Interactive Mouse Connections
+      // 3. Interactive Mouse Influence (No artificial lagging cursor dot; natural cosmic fluid reaction)
       const mX = mouseRef.current.x;
       const mY = mouseRef.current.y;
-      const mouseMaxDist = 135;
+      const mouseMaxDist = 115;
 
       if (mX !== null && mY !== null && mX >= 0 && mX <= width && mY >= 0 && mY <= height) {
         for (let i = 0; i < nodes.length; i++) {
@@ -181,26 +181,24 @@ export const ConstellationCanvas: React.FC<ConstellationCanvasProps> = ({
           const dy = p.y - mY;
           const dist = Math.sqrt(dx * dx + dy * dy);
 
+          // Gentle fluid repulsion when mouse approaches (makes the cosmic particles part naturally)
+          if (dist < 70 && dist > 0) {
+            const force = (70 - dist) / 70;
+            p.x += (dx / dist) * force * 0.5;
+            p.y += (dy / dist) * force * 0.5;
+          }
+
+          // Subtle ethereal connecting threads between nearby nodes and the interaction zone
           if (dist < mouseMaxDist) {
-            const alpha = (1 - dist / mouseMaxDist) * 0.8;
-            ctx.strokeStyle = `rgba(56, 189, 248, ${alpha.toFixed(3)})`;
-            ctx.lineWidth = 1.25;
+            const alpha = (1 - dist / mouseMaxDist) * 0.4;
+            ctx.strokeStyle = `rgba(0, 243, 255, ${alpha.toFixed(3)})`;
+            ctx.lineWidth = 0.75;
             ctx.beginPath();
             ctx.moveTo(p.x, p.y);
             ctx.lineTo(mX, mY);
             ctx.stroke();
           }
         }
-
-        // Mouse pointer node glow
-        ctx.save();
-        ctx.beginPath();
-        ctx.arc(mX, mY, 3.5, 0, Math.PI * 2);
-        ctx.fillStyle = '#00f3ff';
-        ctx.shadowBlur = 12;
-        ctx.shadowColor = '#00f3ff';
-        ctx.fill();
-        ctx.restore();
       }
 
       // 4. Draw Nodes with Outer Glow Halo (exact match to user reference screenshot)
