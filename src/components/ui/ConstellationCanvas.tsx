@@ -115,7 +115,7 @@ export const ConstellationCanvas: React.FC<ConstellationCanvasProps> = ({
         vy: bvy,
         baseVx: bvx,
         baseVy: bvy,
-        radius: 1.8 + Math.random() * 1.6,
+        radius: 1.4 + Math.random() * 1.2,
         pulse: Math.random() * Math.PI * 2,
         pulseSpeed: 0.02 + Math.random() * 0.02,
         glowEnergy: 0,
@@ -254,33 +254,34 @@ export const ConstellationCanvas: React.FC<ConstellationCanvasProps> = ({
       // 4. Draw Reactive Nodes with Dynamic Halo Bloom & Supernova Excitation
       for (let i = 0; i < nodes.length; i++) {
         const p = nodes[i];
-        const pulseFactor = Math.sin(p.pulse) * 0.35;
+        const pulseFactor = Math.sin(p.pulse) * 0.25;
         const energy = p.glowEnergy;
-        const currentRadius = (p.radius + pulseFactor) * (1 + energy * 0.4);
+        // Moderate size expansion on excitation (+25% max)
+        const currentRadius = (p.radius + pulseFactor) * (1 + energy * 0.25);
 
         ctx.save();
 
-        // Outer Bloom Halo: Expands and illuminates dramatically when energized by cursor
-        const haloRadius = currentRadius * (2.6 + energy * 2.2);
-        const haloAlpha = 0.12 + energy * 0.32;
+        // Outer Bloom Halo: Scaled down gracefully for a refined, non-overwhelming cyber glow
+        const haloRadius = currentRadius * (2.2 + energy * 1.2);
+        const haloAlpha = 0.12 + energy * 0.28;
         ctx.beginPath();
         ctx.arc(p.x, p.y, haloRadius, 0, Math.PI * 2);
         ctx.fillStyle = `rgba(0, 243, 255, ${haloAlpha.toFixed(3)})`;
         ctx.fill();
 
         // Concentrated secondary energetic aura ring
-        if (energy > 0.2) {
+        if (energy > 0.25) {
           ctx.beginPath();
-          ctx.arc(p.x, p.y, currentRadius * 1.8, 0, Math.PI * 2);
-          ctx.fillStyle = `rgba(56, 189, 248, ${(energy * 0.35).toFixed(3)})`;
+          ctx.arc(p.x, p.y, currentRadius * 1.5, 0, Math.PI * 2);
+          ctx.fillStyle = `rgba(56, 189, 248, ${(energy * 0.3).toFixed(3)})`;
           ctx.fill();
         }
 
-        // Bright cyber core with intensified glow
+        // Bright cyber core with crisp neon glow
         ctx.beginPath();
         ctx.arc(p.x, p.y, currentRadius, 0, Math.PI * 2);
         ctx.fillStyle = energy > 0.5 ? '#e0f7ff' : 'rgba(56, 189, 248, 0.95)';
-        ctx.shadowBlur = 8 + energy * 16;
+        ctx.shadowBlur = 6 + energy * 10;
         ctx.shadowColor = '#00f3ff';
         ctx.fill();
 
