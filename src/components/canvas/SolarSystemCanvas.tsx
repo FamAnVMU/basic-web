@@ -137,7 +137,7 @@ export const SolarSystemCanvas: React.FC<SolarSystemCanvasProps> = ({
 
     const maxAnisotropy = renderer.capabilities.getMaxAnisotropy();
 
-    // 2. High-Res Particle Texture
+    // 2. High-Res Particle & Cosmic Cloud Textures
     const createParticleTexture = () => {
       const canvas = document.createElement('canvas');
       canvas.width = 64;
@@ -147,8 +147,8 @@ export const SolarSystemCanvas: React.FC<SolarSystemCanvasProps> = ({
 
       const grad = ctx.createRadialGradient(32, 32, 0, 32, 32, 32);
       grad.addColorStop(0, 'rgba(255, 255, 255, 1)');
-      grad.addColorStop(0.2, 'rgba(56, 189, 248, 0.95)');
-      grad.addColorStop(0.5, 'rgba(14, 116, 144, 0.35)');
+      grad.addColorStop(0.25, 'rgba(210, 240, 255, 0.95)');
+      grad.addColorStop(0.55, 'rgba(56, 189, 248, 0.35)');
       grad.addColorStop(1, 'rgba(0, 0, 0, 0)');
 
       ctx.fillStyle = grad;
@@ -159,7 +159,73 @@ export const SolarSystemCanvas: React.FC<SolarSystemCanvasProps> = ({
       return texture;
     };
 
+    const createNebulaCloudTexture = () => {
+      const canvas = document.createElement('canvas');
+      canvas.width = 256;
+      canvas.height = 256;
+      const ctx = canvas.getContext('2d');
+      if (!ctx) return new THREE.Texture();
+
+      const grad = ctx.createRadialGradient(128, 128, 0, 128, 128, 128);
+      grad.addColorStop(0, 'rgba(255, 255, 255, 0.95)');
+      grad.addColorStop(0.25, 'rgba(220, 240, 255, 0.65)');
+      grad.addColorStop(0.5, 'rgba(140, 180, 255, 0.25)');
+      grad.addColorStop(0.75, 'rgba(60, 120, 255, 0.08)');
+      grad.addColorStop(1, 'rgba(0, 0, 0, 0)');
+
+      ctx.fillStyle = grad;
+      ctx.fillRect(0, 0, 256, 256);
+
+      const texture = new THREE.CanvasTexture(canvas);
+      texture.needsUpdate = true;
+      return texture;
+    };
+
+    const createDiffractionStarTexture = () => {
+      const canvas = document.createElement('canvas');
+      canvas.width = 128;
+      canvas.height = 128;
+      const ctx = canvas.getContext('2d');
+      if (!ctx) return new THREE.Texture();
+
+      const cx = 64;
+      const cy = 64;
+
+      // Horizontal diffraction spike
+      const hGrad = ctx.createLinearGradient(0, cy, 128, cy);
+      hGrad.addColorStop(0, 'rgba(255, 255, 255, 0)');
+      hGrad.addColorStop(0.5, 'rgba(255, 255, 255, 0.95)');
+      hGrad.addColorStop(1, 'rgba(255, 255, 255, 0)');
+      ctx.fillStyle = hGrad;
+      ctx.fillRect(0, cy - 1.5, 128, 3);
+
+      // Vertical diffraction spike
+      const vGrad = ctx.createLinearGradient(cx, 0, cx, 128);
+      vGrad.addColorStop(0, 'rgba(255, 255, 255, 0)');
+      vGrad.addColorStop(0.5, 'rgba(255, 255, 255, 0.95)');
+      vGrad.addColorStop(1, 'rgba(255, 255, 255, 0)');
+      ctx.fillStyle = vGrad;
+      ctx.fillRect(cx - 1.5, 0, 3, 128);
+
+      // Diamond core bloom
+      const grad = ctx.createRadialGradient(cx, cy, 0, cx, cy, 32);
+      grad.addColorStop(0, 'rgba(255, 255, 255, 1)');
+      grad.addColorStop(0.2, 'rgba(210, 245, 255, 0.85)');
+      grad.addColorStop(0.5, 'rgba(56, 189, 248, 0.3)');
+      grad.addColorStop(1, 'rgba(0, 0, 0, 0)');
+      ctx.fillStyle = grad;
+      ctx.beginPath();
+      ctx.arc(cx, cy, 32, 0, Math.PI * 2);
+      ctx.fill();
+
+      const texture = new THREE.CanvasTexture(canvas);
+      texture.needsUpdate = true;
+      return texture;
+    };
+
     const particleTexture = createParticleTexture();
+    const nebulaTexture = createNebulaCloudTexture();
+    const flareTexture = createDiffractionStarTexture();
 
     // 3. Cinematic Star Lighting
     const ambientLight = new THREE.AmbientLight(0x0d1e34, 1.2);
@@ -173,15 +239,73 @@ export const SolarSystemCanvas: React.FC<SolarSystemCanvasProps> = ({
     rimLight.position.set(-25, -12, -12);
     scene.add(rimLight);
 
-    // 4. Background Starfields & Cosmic Dust
-    const starCount = isMobile ? 900 : 2000;
+    // 4. Background Starfields, Cosmic Nebulae & Milky Way Dust
+    // Helper: Astronomical spectral star color distribution (O, B, A, F, G, K, M)
+    const getAstronomicalStarColor = (type: number, lum: number = 1.0) => {
+      if (type < 0.38) {
+        // Class O/B: Diamond Blue-White
+        return [0.78 * lum, 0.90 * lum, 1.0 * lum];
+      } else if (type < 0.62) {
+        // Class A: Electric Cyan & Ice Blue
+        return [0.35 * lum, 0.85 * lum, 1.0 * lum];
+      } else if (type < 0.78) {
+        // Class F/G: Warm Sun Gold & Champagne
+        return [1.0 * lum, 0.90 * lum, 0.60 * lum];
+      } else if (type < 0.90) {
+        // Class K/M: Ruby Amber & Rose Flame
+        return [1.0 * lum, 0.62 * lum, 0.45 * lum];
+      } else {
+        // Cosmic Violet / Nebula Purple
+        return [0.88 * lum, 0.68 * lum, 1.0 * lum];
+      }
+    };
+
+    // 4.1 Tier 1: Deep Cosmic Micro-Dust (Infinite velvety depth)
+    const dustCount = isMobile ? 1200 : 3200;
+    const dustGeo = new THREE.BufferGeometry();
+    const dustPos = new Float32Array(dustCount * 3);
+    const dustColors = new Float32Array(dustCount * 3);
+
+    for (let i = 0; i < dustCount; i++) {
+      const i3 = i * 3;
+      const radius = THREE.MathUtils.randFloat(450, 950);
+      const theta = Math.random() * Math.PI * 2;
+      const phi = Math.acos(THREE.MathUtils.randFloatSpread(2));
+
+      dustPos[i3] = radius * Math.sin(phi) * Math.cos(theta);
+      dustPos[i3 + 1] = radius * Math.sin(phi) * Math.sin(theta);
+      dustPos[i3 + 2] = radius * Math.cos(phi);
+
+      const lum = THREE.MathUtils.randFloat(0.35, 0.85);
+      const [r, g, b] = getAstronomicalStarColor(Math.random(), lum);
+      dustColors[i3] = r;
+      dustColors[i3 + 1] = g;
+      dustColors[i3 + 2] = b;
+    }
+    dustGeo.setAttribute('position', new THREE.BufferAttribute(dustPos, 3));
+    dustGeo.setAttribute('color', new THREE.BufferAttribute(dustColors, 3));
+
+    const dustMat = new THREE.PointsMaterial({
+      size: 1.8,
+      map: particleTexture,
+      vertexColors: true,
+      transparent: true,
+      opacity: 0.7,
+      blending: THREE.AdditiveBlending,
+      depthWrite: false,
+    });
+    const dustField = new THREE.Points(dustGeo, dustMat);
+    scene.add(dustField);
+
+    // 4.2 Tier 2: Mid-Field Multi-Spectral Stars
+    const starCount = isMobile ? 900 : 2200;
     const starGeo = new THREE.BufferGeometry();
     const starPos = new Float32Array(starCount * 3);
     const starColors = new Float32Array(starCount * 3);
 
     for (let i = 0; i < starCount; i++) {
       const i3 = i * 3;
-      const radius = THREE.MathUtils.randFloat(260, 800);
+      const radius = THREE.MathUtils.randFloat(280, 750);
       const theta = Math.random() * Math.PI * 2;
       const phi = Math.acos(THREE.MathUtils.randFloatSpread(2));
 
@@ -189,26 +313,262 @@ export const SolarSystemCanvas: React.FC<SolarSystemCanvasProps> = ({
       starPos[i3 + 1] = radius * Math.sin(phi) * Math.sin(theta);
       starPos[i3 + 2] = radius * Math.cos(phi);
 
-      const lum = THREE.MathUtils.randFloat(0.65, 1.3);
-      starColors[i3] = 0.55 * lum;
-      starColors[i3 + 1] = 0.85 * lum;
-      starColors[i3 + 2] = 1.0 * lum;
+      const lum = THREE.MathUtils.randFloat(0.7, 1.35);
+      const [r, g, b] = getAstronomicalStarColor(Math.random(), lum);
+      starColors[i3] = r;
+      starColors[i3 + 1] = g;
+      starColors[i3 + 2] = b;
     }
-
     starGeo.setAttribute('position', new THREE.BufferAttribute(starPos, 3));
     starGeo.setAttribute('color', new THREE.BufferAttribute(starColors, 3));
 
     const starMat = new THREE.PointsMaterial({
-      size: 2.8,
+      size: 3.2,
       map: particleTexture,
       vertexColors: true,
       transparent: true,
-      opacity: 0.85,
+      opacity: 0.9,
       blending: THREE.AdditiveBlending,
       depthWrite: false,
     });
     const starField = new THREE.Points(starGeo, starMat);
     scene.add(starField);
+
+    // 4.3 Tier 3: Milky Way Galactic Rift & Stardust Band (Dải Ngân Hà)
+    const mwCount = isMobile ? 650 : 1800;
+    const mwGeo = new THREE.BufferGeometry();
+    const mwPos = new Float32Array(mwCount * 3);
+    const mwColors = new Float32Array(mwCount * 3);
+
+    // Tilted Galactic coordinate transformation
+    const mwRotationMatrix = new THREE.Matrix4()
+      .makeRotationX(THREE.MathUtils.degToRad(38))
+      .multiply(new THREE.Matrix4().makeRotationZ(THREE.MathUtils.degToRad(-24)));
+
+    for (let i = 0; i < mwCount; i++) {
+      const i3 = i * 3;
+      // Angle along galactic disc
+      const angle = Math.random() * Math.PI * 2;
+      const distance = THREE.MathUtils.randFloat(350, 700);
+      // Gaussian concentration near the galactic disc plane
+      const discSpread = (Math.random() + Math.random() + Math.random() - 1.5) * 65;
+      const discRadialSpread = (Math.random() - 0.5) * 120;
+
+      const pVec = new THREE.Vector3(
+        (distance + discRadialSpread) * Math.cos(angle),
+        discSpread,
+        (distance + discRadialSpread) * Math.sin(angle)
+      ).applyMatrix4(mwRotationMatrix);
+
+      mwPos[i3] = pVec.x;
+      mwPos[i3 + 1] = pVec.y;
+      mwPos[i3 + 2] = pVec.z;
+
+      // Color variation: Golden galactic core blending into cyan/violet stellar arms
+      const coreProximity = Math.abs(Math.sin(angle));
+      const lum = THREE.MathUtils.randFloat(0.55, 1.25);
+      if (coreProximity > 0.6) {
+        // Warm gold / amber dust
+        mwColors[i3] = 1.0 * lum;
+        mwColors[i3 + 1] = 0.85 * lum;
+        mwColors[i3 + 2] = 0.5 * lum;
+      } else {
+        // Cyan & lavender stellar dust
+        mwColors[i3] = 0.45 * lum;
+        mwColors[i3 + 1] = 0.8 * lum;
+        mwColors[i3 + 2] = 1.0 * lum;
+      }
+    }
+    mwGeo.setAttribute('position', new THREE.BufferAttribute(mwPos, 3));
+    mwGeo.setAttribute('color', new THREE.BufferAttribute(mwColors, 3));
+
+    const mwMat = new THREE.PointsMaterial({
+      size: 2.4,
+      map: particleTexture,
+      vertexColors: true,
+      transparent: true,
+      opacity: 0.8,
+      blending: THREE.AdditiveBlending,
+      depthWrite: false,
+    });
+    const mwField = new THREE.Points(mwGeo, mwMat);
+    scene.add(mwField);
+
+    // 4.4 Tier 4: Hero Beacon Stars & Pulsars (Diffraction Spikes / James Webb Style)
+    const heroCount = 38;
+    const heroGeo = new THREE.BufferGeometry();
+    const heroPos = new Float32Array(heroCount * 3);
+    const heroColors = new Float32Array(heroCount * 3);
+
+    for (let i = 0; i < heroCount; i++) {
+      const i3 = i * 3;
+      const radius = THREE.MathUtils.randFloat(320, 680);
+      const theta = Math.random() * Math.PI * 2;
+      const phi = Math.acos(THREE.MathUtils.randFloatSpread(2));
+
+      heroPos[i3] = radius * Math.sin(phi) * Math.cos(theta);
+      heroPos[i3 + 1] = radius * Math.sin(phi) * Math.sin(theta);
+      heroPos[i3 + 2] = radius * Math.cos(phi);
+
+      const [r, g, b] = getAstronomicalStarColor(Math.random(), 1.4);
+      heroColors[i3] = r;
+      heroColors[i3 + 1] = g;
+      heroColors[i3 + 2] = b;
+    }
+    heroGeo.setAttribute('position', new THREE.BufferAttribute(heroPos, 3));
+    heroGeo.setAttribute('color', new THREE.BufferAttribute(heroColors, 3));
+
+    const heroMat = new THREE.PointsMaterial({
+      size: 16.0,
+      map: flareTexture,
+      vertexColors: true,
+      transparent: true,
+      opacity: 0.95,
+      blending: THREE.AdditiveBlending,
+      depthWrite: false,
+    });
+    const heroStars = new THREE.Points(heroGeo, heroMat);
+    scene.add(heroStars);
+
+    // 4.5 3D Volumetric Cosmic Nebulae (Glowing interstellar gas clouds)
+    const nebulaGroup = new THREE.Group();
+    const nebulaMaterials: THREE.SpriteMaterial[] = [];
+
+    // Helper to spawn a billowing nebula cluster
+    const createNebulaCluster = (
+      center: THREE.Vector3,
+      count: number,
+      spread: number,
+      palette: number[],
+      baseScale: number,
+      opacity: number
+    ) => {
+      for (let i = 0; i < count; i++) {
+        const colorHex = palette[i % palette.length];
+        const mat = new THREE.SpriteMaterial({
+          map: nebulaTexture,
+          color: colorHex,
+          transparent: true,
+          opacity: opacity * THREE.MathUtils.randFloat(0.75, 1.25),
+          blending: THREE.AdditiveBlending,
+          depthWrite: false,
+        });
+        nebulaMaterials.push(mat);
+
+        const sprite = new THREE.Sprite(mat);
+        const offset = new THREE.Vector3(
+          THREE.MathUtils.randFloatSpread(spread),
+          THREE.MathUtils.randFloatSpread(spread * 0.7),
+          THREE.MathUtils.randFloatSpread(spread)
+        );
+        sprite.position.copy(center).add(offset);
+        const s = baseScale * THREE.MathUtils.randFloat(0.8, 1.4);
+        sprite.scale.set(s, s, 1);
+        nebulaGroup.add(sprite);
+      }
+    };
+
+    // Nebula 1: The Cygnus Cyan & Electric Teal Lagoon (Top-left sky)
+    createNebulaCluster(
+      new THREE.Vector3(-320, 180, -420),
+      isMobile ? 8 : 16,
+      180,
+      [0x06b6d4, 0x0284c7, 0x0891b2, 0x38bdf8],
+      180,
+      0.15
+    );
+
+    // Nebula 2: The Carina Violet-Magenta Stellar Rose (Lower-right deep space)
+    createNebulaCluster(
+      new THREE.Vector3(340, -140, -450),
+      isMobile ? 9 : 18,
+      200,
+      [0x7c3aed, 0xa855f7, 0xdb2777, 0x4c1d95],
+      190,
+      0.14
+    );
+
+    // Nebula 3: The Sagittarius Golden Amber Core (Galactic center dust)
+    createNebulaCluster(
+      new THREE.Vector3(60, -220, -480),
+      isMobile ? 6 : 14,
+      220,
+      [0xd97706, 0xb45309, 0xf59e0b, 0x6366f1],
+      220,
+      0.12
+    );
+
+    scene.add(nebulaGroup);
+
+    // 4.6 Shooting Stars (Meteors - Sao Băng)
+    const meteorMax = 2;
+    const meteorPool: {
+      line: THREE.Line;
+      geo: THREE.BufferGeometry;
+      active: boolean;
+      progress: number;
+      speed: number;
+      start: THREE.Vector3;
+      end: THREE.Vector3;
+      trailLength: number;
+    }[] = [];
+
+    const meteorMat = new THREE.LineBasicMaterial({
+      vertexColors: true,
+      transparent: true,
+      blending: THREE.AdditiveBlending,
+      linewidth: 2,
+    });
+
+    for (let i = 0; i < meteorMax; i++) {
+      const geo = new THREE.BufferGeometry();
+      const pos = new Float32Array(6); // 2 vertices: head and tail
+      const cols = new Float32Array(6);
+      // Head: pure white
+      cols[0] = 1; cols[1] = 1; cols[2] = 1;
+      // Tail: cyan, fading
+      cols[3] = 0; cols[4] = 0.85; cols[5] = 1;
+      geo.setAttribute('position', new THREE.BufferAttribute(pos, 3));
+      geo.setAttribute('color', new THREE.BufferAttribute(cols, 3));
+
+      const line = new THREE.Line(geo, meteorMat);
+      line.visible = false;
+      scene.add(line);
+
+      meteorPool.push({
+        line,
+        geo,
+        active: false,
+        progress: 0,
+        speed: 1.0,
+        start: new THREE.Vector3(),
+        end: new THREE.Vector3(),
+        trailLength: 60,
+      });
+    }
+
+    let nextMeteorTime = performance.now() + 2500;
+    const triggerMeteor = () => {
+      const meteor = meteorPool.find((m) => !m.active);
+      if (!meteor) return;
+
+      const sx = THREE.MathUtils.randFloat(-350, 350);
+      const sy = THREE.MathUtils.randFloat(180, 420);
+      const sz = THREE.MathUtils.randFloat(-380, -180);
+      meteor.start.set(sx, sy, sz);
+
+      // Trajectory downward and across
+      const dx = THREE.MathUtils.randFloat(-240, -140) * (Math.random() > 0.5 ? 1 : -1);
+      const dy = THREE.MathUtils.randFloat(-200, -120);
+      const dz = THREE.MathUtils.randFloat(-40, 40);
+      meteor.end.set(sx + dx, sy + dy, sz + dz);
+
+      meteor.trailLength = THREE.MathUtils.randFloat(55, 90);
+      meteor.speed = THREE.MathUtils.randFloat(0.018, 0.032);
+      meteor.progress = 0;
+      meteor.active = true;
+      meteor.line.visible = true;
+    };
 
     // 5. Photorealistic Texture Loader & Centerpiece Main Planet: "PHAM AN" (NASA Blue Marble 4K)
     const textureLoader = new THREE.TextureLoader();
@@ -1074,8 +1434,42 @@ export const SolarSystemCanvas: React.FC<SolarSystemCanvasProps> = ({
 
       onUpdateSatellitesRef.current(screenPositions);
 
-      // Subtle starfield rotation
-      starField.rotation.y = elapsed * 0.002;
+      // Multi-layer celestial parallax rotation
+      starField.rotation.y = elapsed * 0.0018;
+      dustField.rotation.y = elapsed * 0.0013;
+      mwField.rotation.y = elapsed * 0.0016;
+      heroStars.rotation.y = elapsed * 0.0018;
+      nebulaGroup.rotation.y = elapsed * 0.0007;
+
+      // Pulsar beacon breathing effect
+      heroMat.size = 15.0 + Math.sin(elapsed * 2.6) * 3.5;
+
+      // Shooting Stars / Meteors dynamic execution
+      const now = performance.now();
+      if (now > nextMeteorTime) {
+        triggerMeteor();
+        nextMeteorTime = now + THREE.MathUtils.randFloat(3500, 7500);
+      }
+
+      for (let i = 0; i < meteorPool.length; i++) {
+        const m = meteorPool[i];
+        if (!m.active) continue;
+        m.progress += m.speed;
+        if (m.progress >= 1.0) {
+          m.active = false;
+          m.line.visible = false;
+        } else {
+          // Compute head and trailing tail coordinates
+          const head = m.start.clone().lerp(m.end, m.progress);
+          const dir = m.end.clone().sub(m.start).normalize();
+          const tail = head.clone().sub(dir.multiplyScalar(m.trailLength));
+
+          const posAttr = m.geo.attributes.position as THREE.BufferAttribute;
+          posAttr.setXYZ(0, head.x, head.y, head.z);
+          posAttr.setXYZ(1, tail.x, tail.y, tail.z);
+          posAttr.needsUpdate = true;
+        }
+      }
 
       renderer.render(scene, camera);
     };
@@ -1094,6 +1488,19 @@ export const SolarSystemCanvas: React.FC<SolarSystemCanvasProps> = ({
       triggerDirectWarpRef.current = null;
 
       particleTexture.dispose();
+      nebulaTexture.dispose();
+      flareTexture.dispose();
+      dustGeo.dispose();
+      dustMat.dispose();
+      starGeo.dispose();
+      starMat.dispose();
+      mwGeo.dispose();
+      mwMat.dispose();
+      heroGeo.dispose();
+      heroMat.dispose();
+      nebulaMaterials.forEach((m) => m.dispose());
+      meteorMat.dispose();
+      meteorPool.forEach((m) => m.geo.dispose());
       earthDayMap.dispose();
       earthNormalMap.dispose();
       earthSpecMap.dispose();
@@ -1111,8 +1518,6 @@ export const SolarSystemCanvas: React.FC<SolarSystemCanvasProps> = ({
       cloudMat.dispose();
       atmosphereGeo.dispose();
       atmosphereMat.dispose();
-      starGeo.dispose();
-      starMat.dispose();
 
       if (container.contains(renderer.domElement)) {
         container.removeChild(renderer.domElement);
@@ -1126,7 +1531,7 @@ export const SolarSystemCanvas: React.FC<SolarSystemCanvasProps> = ({
       ref={containerRef}
       className="fixed inset-0 z-0 overflow-hidden select-none"
       style={{
-        background: 'radial-gradient(ellipse at 50% 65%, #071e3d 0%, #030d22 45%, #020612 100%)',
+        background: 'radial-gradient(ellipse at 50% 60%, #071933 0%, #030c1f 48%, #01040a 100%)',
       }}
       title="Bấm vào bất kỳ hành tinh nào để phóng góc nhìn đến hành tinh đó"
       aria-label="Không gian 3D tương tác hệ hành tinh"
