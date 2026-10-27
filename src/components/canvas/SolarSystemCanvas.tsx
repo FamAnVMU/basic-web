@@ -898,33 +898,97 @@ export const SolarSystemCanvas: React.FC<SolarSystemCanvasProps> = ({
 
     const satelliteNodes3D: SatelliteNode3D[] = [];
 
-    // Create 4 3D satellite probes
+    // Shared high-detail satellite geometries & materials (Authentic space probe model)
+    const satChassisGeo = new THREE.CylinderGeometry(0.2, 0.24, 0.45, 6);
+    const satTopBayGeo = new THREE.CylinderGeometry(0.14, 0.2, 0.14, 6);
+    const satPanelGeo = new THREE.BoxGeometry(0.8, 0.02, 0.36);
+    const satTrussGeo = new THREE.CylinderGeometry(0.02, 0.02, 0.3, 6);
+    satTrussGeo.rotateZ(Math.PI / 2);
+    const satDishGeo = new THREE.ConeGeometry(0.2, 0.08, 16, 1, true);
+    satDishGeo.rotateX(Math.PI / 3);
+    const satEngineGeo = new THREE.ConeGeometry(0.11, 0.12, 8, 1, true);
+    satEngineGeo.rotateX(Math.PI);
+    const satBeaconGeo = new THREE.SphereGeometry(0.05, 8, 8);
+
+    const satChassisMat = new THREE.MeshStandardMaterial({
+      color: 0xf59e0b,
+      metalness: 0.9,
+      roughness: 0.2,
+      emissive: 0x78350f,
+      emissiveIntensity: 0.25,
+    });
+    const satTitaniumMat = new THREE.MeshStandardMaterial({
+      color: 0x334155,
+      metalness: 0.85,
+      roughness: 0.3,
+    });
+    const satPanelMat = new THREE.MeshStandardMaterial({
+      color: 0x0c2744,
+      metalness: 0.95,
+      roughness: 0.15,
+      emissive: 0x02162b,
+      emissiveIntensity: 0.45,
+    });
+    const satDishMat = new THREE.MeshStandardMaterial({
+      color: 0xf1f5f9,
+      metalness: 0.8,
+      roughness: 0.25,
+    });
+    const satBeaconMat = new THREE.MeshBasicMaterial({
+      color: 0x00f3ff,
+    });
+
+    // Create 4 3D authentic space satellite probes
     for (let i = 0; i < 4; i++) {
       const sGroup = new THREE.Group();
       satelliteSystemGroup.add(sGroup);
 
-      // Probe Body (Octahedron crystal probe)
-      const pGeo = new THREE.OctahedronGeometry(0.35, 0);
-      const pMat = new THREE.MeshStandardMaterial({
-        color: 0x00f3ff,
-        emissive: 0x00f3ff,
-        emissiveIntensity: 0.9,
-        metalness: 0.9,
-      });
-      const pMesh = new THREE.Mesh(pGeo, pMat);
-      sGroup.add(pMesh);
+      // 1. Central Aerospace Bus (Gold Kapton Foil Chassis)
+      const chassisMesh = new THREE.Mesh(satChassisGeo, satChassisMat);
+      sGroup.add(chassisMesh);
 
-      // Solar Wings
-      const wingGeo = new THREE.BoxGeometry(1.4, 0.04, 0.35);
-      const wingMat = new THREE.MeshStandardMaterial({ color: 0x032b45, metalness: 0.8 });
-      const wingMesh = new THREE.Mesh(wingGeo, wingMat);
-      sGroup.add(wingMesh);
+      // 2. Equipment Bay on top
+      const topBayMesh = new THREE.Mesh(satTopBayGeo, satTitaniumMat);
+      topBayMesh.position.set(0, 0.28, 0);
+      sGroup.add(topBayMesh);
 
-      // Point Light
-      const pLight = new THREE.PointLight(0x00f3ff, 2.5, 8);
+      // 3. Engine Thruster on bottom
+      const engineMesh = new THREE.Mesh(satEngineGeo, satTitaniumMat);
+      engineMesh.position.set(0, -0.28, 0);
+      sGroup.add(engineMesh);
+
+      // 4. Dual Photovoltaic Solar Array Wings (Left & Right)
+      const leftTruss = new THREE.Mesh(satTrussGeo, satTitaniumMat);
+      leftTruss.position.set(-0.25, 0, 0);
+      sGroup.add(leftTruss);
+
+      const rightTruss = new THREE.Mesh(satTrussGeo, satTitaniumMat);
+      rightTruss.position.set(0.25, 0, 0);
+      sGroup.add(rightTruss);
+
+      const leftPanel = new THREE.Mesh(satPanelGeo, satPanelMat);
+      leftPanel.position.set(-0.75, 0, 0);
+      sGroup.add(leftPanel);
+
+      const rightPanel = new THREE.Mesh(satPanelGeo, satPanelMat);
+      rightPanel.position.set(0.75, 0, 0);
+      sGroup.add(rightPanel);
+
+      // 5. High-Gain Parabolic Communications Dish
+      const dishMesh = new THREE.Mesh(satDishGeo, satDishMat);
+      dishMesh.position.set(0, 0.36, 0.08);
+      sGroup.add(dishMesh);
+
+      // 6. Navigation Beacon LED & Point Light
+      const beaconMesh = new THREE.Mesh(satBeaconGeo, satBeaconMat);
+      beaconMesh.position.set(0, 0.38, -0.1);
+      sGroup.add(beaconMesh);
+
+      const pLight = new THREE.PointLight(0x00f3ff, 2.0, 7);
+      pLight.position.set(0, 0.4, 0);
       sGroup.add(pLight);
 
-      // Glowing Tether Line connecting to planet
+      // 7. Glowing Tether Line connecting to planet
       const lineGeo = new THREE.BufferGeometry().setFromPoints([
         new THREE.Vector3(0, 0, 0),
         new THREE.Vector3(0, 0, 0),
@@ -944,7 +1008,7 @@ export const SolarSystemCanvas: React.FC<SolarSystemCanvasProps> = ({
         lineGeo,
         angleOffset: (Math.PI * 2 * i) / 4,
         orbitDist: 1.8,
-        speed: 0.08 + i * 0.02, // Gentle, slow cosmic orbit
+        speed: 0.08 + i * 0.02,
       });
     }
 
@@ -1398,7 +1462,14 @@ export const SolarSystemCanvas: React.FC<SolarSystemCanvasProps> = ({
         const satZ = activeWorldPos.z + Math.sin(angle) * satDist;
 
         sat.group.position.set(satX, satY, satZ);
-        sat.group.rotation.y = elapsed * 0.2;
+        sat.group.rotation.y = elapsed * 0.25;
+        sat.group.rotation.x = Math.sin(elapsed * 0.4 + sIdx) * 0.12;
+
+        // Elegant scaling in overview mode:
+        // Keeps satellites sleek and proportional whether close up or viewing entire solar system
+        const isOverview = isOverviewRef.current;
+        const targetScale = isOverview ? 0.65 : 1.0;
+        sat.group.scale.setScalar(targetScale);
 
         // Update connecting beam line to planet
         const positions = sat.lineGeo.attributes.position.array as Float32Array;
@@ -1410,7 +1481,9 @@ export const SolarSystemCanvas: React.FC<SolarSystemCanvasProps> = ({
         positions[5] = satZ;
         sat.lineGeo.attributes.position.needsUpdate = true;
 
-        (sat.line.material as THREE.LineBasicMaterial).color.setHex(activeColor);
+        const satLineMat = sat.line.material as THREE.LineBasicMaterial;
+        satLineMat.color.setHex(activeColor);
+        satLineMat.opacity = isOverview ? 0.2 : 0.45;
 
         // Project 3D satellite position to 2D viewport coordinates
         const tempV = new THREE.Vector3(satX, satY, satZ);
@@ -1501,6 +1574,22 @@ export const SolarSystemCanvas: React.FC<SolarSystemCanvasProps> = ({
       nebulaMaterials.forEach((m) => m.dispose());
       meteorMat.dispose();
       meteorPool.forEach((m) => m.geo.dispose());
+      satChassisGeo.dispose();
+      satTopBayGeo.dispose();
+      satPanelGeo.dispose();
+      satTrussGeo.dispose();
+      satDishGeo.dispose();
+      satEngineGeo.dispose();
+      satBeaconGeo.dispose();
+      satChassisMat.dispose();
+      satTitaniumMat.dispose();
+      satPanelMat.dispose();
+      satDishMat.dispose();
+      satBeaconMat.dispose();
+      satelliteNodes3D.forEach((s) => {
+        s.lineGeo.dispose();
+        (s.line.material as THREE.Material).dispose();
+      });
       earthDayMap.dispose();
       earthNormalMap.dispose();
       earthSpecMap.dispose();

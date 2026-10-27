@@ -233,7 +233,7 @@ export const MobilePortfolioView: React.FC<MobilePortfolioViewProps> = ({
       </header>
 
       {/* Sticky Section Jump Pill Bar */}
-      <nav className="sticky top-[49px] z-30 bg-[#020612]/80 backdrop-blur-md border-b border-cyan-500/15 py-1.5 px-3 overflow-x-auto modal-scrollbar flex items-center gap-1.5 select-none">
+      <nav className="sticky top-[49px] z-30 bg-[#020612]/80 backdrop-blur-md border-b border-cyan-500/15 py-1.5 px-3 overflow-x-auto no-scrollbar flex items-center gap-1.5 select-none touch-pan-x">
         {[
           { id: 'profile', label: t.mobile.quickNav.profile, icon: '👤' },
           { id: 'education', label: t.mobile.quickNav.edu, icon: '⚓' },
@@ -260,13 +260,13 @@ export const MobilePortfolioView: React.FC<MobilePortfolioViewProps> = ({
       </nav>
 
       {/* Main Content Sections with Scroll-Triggered Reveal Animations */}
-      <main className="px-4 py-5 max-w-xl mx-auto w-full space-y-7 relative z-10">
+      <main className="px-3 sm:px-4 py-5 max-w-xl mx-auto w-full space-y-7 relative z-10">
         {/* ========================================================= */}
         {/* 1. HERO PROFILE CARD (#profile)                          */}
         {/* ========================================================= */}
         <section id="profile" className="scroll-mt-28">
           <ScrollReveal animation="fade-up" duration={800}>
-            <div className="rounded-3xl hologram-panel border border-cyan-400/50 p-5 sm:p-6 shadow-[0_0_35px_rgba(0,243,255,0.2)] relative overflow-hidden">
+            <div className="rounded-3xl hologram-panel border border-cyan-400/50 p-4 sm:p-6 shadow-[0_0_35px_rgba(0,243,255,0.2)] relative overflow-hidden">
               {/* Decorative Corner Cyber Notch */}
               <div className="absolute top-0 right-0 w-16 h-16 bg-gradient-to-bl from-cyan-500/20 to-transparent pointer-events-none" />
 
@@ -290,7 +290,7 @@ export const MobilePortfolioView: React.FC<MobilePortfolioViewProps> = ({
                 </div>
 
                 {/* Identity & Faculty Details */}
-                <div className="space-y-2 mt-2 max-w-md">
+                <div className="space-y-2 mt-2 max-w-md w-full">
                   <div className="inline-flex items-center gap-1.5 px-3 py-0.5 rounded-full bg-cyan-500/15 text-cyan-300 border border-cyan-400/30 text-[10px] font-mono-code">
                     <Sparkles className="w-3 h-3 text-cyan-400" />
                     <span>{t.modal.studentBadge}</span>
@@ -312,42 +312,42 @@ export const MobilePortfolioView: React.FC<MobilePortfolioViewProps> = ({
 
                 {/* 4-Item Cyber HUD Metrics Grid */}
                 <div className="w-full grid grid-cols-2 gap-2 pt-2 text-left font-mono-code">
-                  <div className="p-2.5 rounded-2xl bg-slate-950/70 border border-cyan-500/25 space-y-0.5">
-                    <div className="text-[9px] text-slate-400 flex items-center gap-1 uppercase">
-                      <Terminal className="w-3 h-3 text-cyan-400" />
-                      <span>{t.mobile.metrics.major}</span>
+                  <div className="p-2 sm:p-2.5 rounded-2xl bg-slate-950/70 border border-cyan-500/25 space-y-0.5 min-w-0">
+                    <div className="text-[9px] text-slate-400 flex items-center gap-1 uppercase truncate">
+                      <Terminal className="w-3 h-3 text-cyan-400 shrink-0" />
+                      <span className="truncate">{t.mobile.metrics.major}</span>
                     </div>
-                    <div className="text-xs font-semibold text-cyan-200 truncate">
+                    <div className="text-[11px] sm:text-xs font-semibold text-cyan-200 leading-tight break-words">
                       {t.mobile.metrics.majorVal}
                     </div>
                   </div>
 
-                  <div className="p-2.5 rounded-2xl bg-slate-950/70 border border-cyan-500/25 space-y-0.5">
-                    <div className="text-[9px] text-slate-400 flex items-center gap-1 uppercase">
-                      <Calendar className="w-3 h-3 text-sky-400" />
-                      <span>{t.mobile.metrics.cohort}</span>
+                  <div className="p-2 sm:p-2.5 rounded-2xl bg-slate-950/70 border border-cyan-500/25 space-y-0.5 min-w-0">
+                    <div className="text-[9px] text-slate-400 flex items-center gap-1 uppercase truncate">
+                      <Calendar className="w-3 h-3 text-sky-400 shrink-0" />
+                      <span className="truncate">{t.mobile.metrics.cohort}</span>
                     </div>
-                    <div className="text-xs font-semibold text-slate-100 truncate">
+                    <div className="text-[11px] sm:text-xs font-semibold text-slate-100 leading-tight break-words">
                       {t.mobile.metrics.cohortVal}
                     </div>
                   </div>
 
-                  <div className="p-2.5 rounded-2xl bg-slate-950/70 border border-cyan-500/25 space-y-0.5">
-                    <div className="text-[9px] text-slate-400 flex items-center gap-1 uppercase">
-                      <UserCheck className="w-3 h-3 text-emerald-400" />
-                      <span>{t.mobile.metrics.stage}</span>
+                  <div className="p-2 sm:p-2.5 rounded-2xl bg-slate-950/70 border border-cyan-500/25 space-y-0.5 min-w-0">
+                    <div className="text-[9px] text-slate-400 flex items-center gap-1 uppercase truncate">
+                      <UserCheck className="w-3 h-3 text-emerald-400 shrink-0" />
+                      <span className="truncate">{t.mobile.metrics.stage}</span>
                     </div>
-                    <div className="text-xs font-semibold text-emerald-300 truncate">
+                    <div className="text-[11px] sm:text-xs font-semibold text-emerald-300 leading-tight break-words">
                       {t.mobile.metrics.stageVal}
                     </div>
                   </div>
 
-                  <div className="p-2.5 rounded-2xl bg-slate-950/70 border border-cyan-500/25 space-y-0.5">
-                    <div className="text-[9px] text-slate-400 flex items-center gap-1 uppercase">
-                      <MapPin className="w-3 h-3 text-rose-400" />
-                      <span>{t.mobile.metrics.location}</span>
+                  <div className="p-2 sm:p-2.5 rounded-2xl bg-slate-950/70 border border-cyan-500/25 space-y-0.5 min-w-0">
+                    <div className="text-[9px] text-slate-400 flex items-center gap-1 uppercase truncate">
+                      <MapPin className="w-3 h-3 text-rose-400 shrink-0" />
+                      <span className="truncate">{t.mobile.metrics.location}</span>
                     </div>
-                    <div className="text-xs font-semibold text-slate-100 truncate">
+                    <div className="text-[11px] sm:text-xs font-semibold text-slate-100 leading-tight break-words">
                       {t.mobile.metrics.locationVal}
                     </div>
                   </div>
@@ -363,9 +363,9 @@ export const MobilePortfolioView: React.FC<MobilePortfolioViewProps> = ({
                 <div className="w-full grid grid-cols-2 gap-2 text-xs font-mono-code pt-1">
                   <button
                     onClick={() => handleCopy('phama6372@gmail.com', 'hero-email')}
-                    className="p-2.5 rounded-xl bg-slate-900/90 border border-cyan-500/30 hover:border-cyan-400 flex items-center justify-between gap-1 text-slate-200 transition-all hover:bg-cyan-950/60 active:scale-95 cursor-pointer"
+                    className="p-2 sm:p-2.5 rounded-xl bg-slate-900/90 border border-cyan-500/30 hover:border-cyan-400 flex items-center justify-between gap-1 text-slate-200 transition-all hover:bg-cyan-950/60 active:scale-95 cursor-pointer min-w-0"
                   >
-                    <div className="flex items-center gap-2 truncate">
+                    <div className="flex items-center gap-1.5 sm:gap-2 truncate text-[11px] sm:text-xs">
                       <Mail className="w-3.5 h-3.5 text-cyan-400 shrink-0" />
                       <span className="truncate">{currentLang === 'vi' ? 'Gửi Email' : 'Email Me'}</span>
                     </div>
@@ -380,9 +380,9 @@ export const MobilePortfolioView: React.FC<MobilePortfolioViewProps> = ({
                     href="https://github.com/FamAnVMU"
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="p-2.5 rounded-xl bg-slate-900/90 border border-cyan-500/30 hover:border-cyan-400 flex items-center justify-between gap-1 text-slate-200 transition-all hover:bg-slate-800/80 active:scale-95 cursor-pointer"
+                    className="p-2 sm:p-2.5 rounded-xl bg-slate-900/90 border border-cyan-500/30 hover:border-cyan-400 flex items-center justify-between gap-1 text-slate-200 transition-all hover:bg-slate-800/80 active:scale-95 cursor-pointer min-w-0"
                   >
-                    <div className="flex items-center gap-2 truncate">
+                    <div className="flex items-center gap-1.5 sm:gap-2 truncate text-[11px] sm:text-xs">
                       <GithubIcon className="w-3.5 h-3.5 text-slate-300 shrink-0" />
                       <span className="truncate">GitHub</span>
                     </div>
@@ -393,9 +393,9 @@ export const MobilePortfolioView: React.FC<MobilePortfolioViewProps> = ({
                     href="https://www.facebook.com/pham.an.123114"
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="p-2.5 rounded-xl bg-slate-900/90 border border-cyan-500/30 hover:border-cyan-400 flex items-center justify-between gap-1 text-slate-200 transition-all hover:bg-blue-950/40 active:scale-95 cursor-pointer"
+                    className="p-2 sm:p-2.5 rounded-xl bg-slate-900/90 border border-cyan-500/30 hover:border-cyan-400 flex items-center justify-between gap-1 text-slate-200 transition-all hover:bg-blue-950/40 active:scale-95 cursor-pointer min-w-0"
                   >
-                    <div className="flex items-center gap-2 truncate">
+                    <div className="flex items-center gap-1.5 sm:gap-2 truncate text-[11px] sm:text-xs">
                       <FacebookIcon className="w-3.5 h-3.5 text-blue-400 shrink-0" />
                       <span className="truncate">Facebook</span>
                     </div>
@@ -406,9 +406,9 @@ export const MobilePortfolioView: React.FC<MobilePortfolioViewProps> = ({
                     href="https://discord.com/users/846953344903282758"
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="p-2.5 rounded-xl bg-slate-900/90 border border-cyan-500/30 hover:border-cyan-400 flex items-center justify-between gap-1 text-slate-200 transition-all hover:bg-indigo-950/40 active:scale-95 cursor-pointer"
+                    className="p-2 sm:p-2.5 rounded-xl bg-slate-900/90 border border-cyan-500/30 hover:border-cyan-400 flex items-center justify-between gap-1 text-slate-200 transition-all hover:bg-indigo-950/40 active:scale-95 cursor-pointer min-w-0"
                   >
-                    <div className="flex items-center gap-2 truncate">
+                    <div className="flex items-center gap-1.5 sm:gap-2 truncate text-[11px] sm:text-xs">
                       <DiscordIcon className="w-3.5 h-3.5 text-indigo-400 shrink-0" />
                       <span className="truncate">Discord</span>
                     </div>
@@ -760,10 +760,10 @@ export const MobilePortfolioView: React.FC<MobilePortfolioViewProps> = ({
                     </div>
                   </div>
 
-                  <div className="flex items-center gap-2 pt-1 font-mono-code">
+                  <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 pt-1 font-mono-code">
                     <button
                       onClick={() => handleCopy('phama6372@gmail.com', 'contact-email')}
-                      className="flex-1 py-2 px-3 rounded-xl bg-cyan-500/20 hover:bg-cyan-500/30 text-cyan-300 border border-cyan-400/40 flex items-center justify-center gap-1.5 transition-colors cursor-pointer active:scale-95"
+                      className="flex-1 py-2.5 px-3 rounded-xl bg-cyan-500/20 hover:bg-cyan-500/30 text-cyan-300 border border-cyan-400/40 flex items-center justify-center gap-1.5 transition-colors cursor-pointer active:scale-95 text-xs font-semibold"
                     >
                       {copiedKey === 'contact-email' ? (
                         <>
@@ -780,7 +780,7 @@ export const MobilePortfolioView: React.FC<MobilePortfolioViewProps> = ({
 
                     <a
                       href="mailto:phama6372@gmail.com"
-                      className="py-2 px-3 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-600/50 flex items-center justify-center gap-1.5 transition-colors active:scale-95"
+                      className="py-2.5 px-3 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-600/50 flex items-center justify-center gap-1.5 transition-colors active:scale-95 text-xs font-semibold"
                     >
                       <ExternalLink className="w-3.5 h-3.5" />
                       <span>{t.mobile.sendMail}</span>
@@ -851,24 +851,24 @@ export const MobilePortfolioView: React.FC<MobilePortfolioViewProps> = ({
       </main>
 
       {/* Floating Bottom Quick Action Bar for Mobile */}
-      <div className="fixed bottom-4 inset-x-4 z-40 max-w-md mx-auto flex items-center justify-between p-2 rounded-2xl bg-[#020612]/95 backdrop-blur-xl border border-cyan-500/40 shadow-[0_8px_32px_rgba(0,0,0,0.85)]">
+      <div className="fixed bottom-3 sm:bottom-4 inset-x-3 sm:inset-x-4 z-40 max-w-md mx-auto flex items-center gap-1.5 sm:gap-2 p-1.5 sm:p-2 rounded-2xl bg-[#020612]/95 backdrop-blur-xl border border-cyan-500/40 shadow-[0_8px_32px_rgba(0,0,0,0.85)] pb-[max(0.375rem,env(safe-area-inset-bottom))]">
         {/* Switch to 3D Space Button */}
         <button
           onClick={() => {
             soundManager.playWarp();
             onSwitchTo3D();
           }}
-          className="flex-1 flex items-center justify-center gap-2 py-2 px-3 rounded-xl bg-gradient-to-r from-cyan-500 via-sky-400 to-cyan-300 text-slate-950 font-bold text-xs font-mono-code shadow-[0_0_16px_rgba(0,243,255,0.5)] active:scale-95 transition-all cursor-pointer"
+          className="flex-1 min-w-0 flex items-center justify-center gap-1.5 py-2 px-2.5 sm:px-3 rounded-xl bg-gradient-to-r from-cyan-500 via-sky-400 to-cyan-300 text-slate-950 font-bold text-xs font-mono-code shadow-[0_0_16px_rgba(0,243,255,0.5)] active:scale-95 transition-all cursor-pointer"
         >
-          <Compass className="w-4 h-4 animate-spin-slow" />
-          <span>{t.mobile.switchTo3D}</span>
+          <Compass className="w-4 h-4 shrink-0 animate-spin-slow" />
+          <span className="truncate">{t.mobile.switchTo3D}</span>
         </button>
 
         {/* Back to Top Quick Button (Visible when scrolled) */}
         {showBackToTop && (
           <button
             onClick={scrollToTop}
-            className="ml-2 p-2 rounded-xl bg-slate-900 border border-cyan-500/40 text-cyan-300 hover:text-white hover:bg-cyan-950 transition-all cursor-pointer shadow-md"
+            className="p-2 shrink-0 rounded-xl bg-slate-900 border border-cyan-500/40 text-cyan-300 hover:text-white hover:bg-cyan-950 transition-all cursor-pointer shadow-md"
             title={t.mobile.backToTop}
             aria-label={t.mobile.backToTop}
           >
@@ -877,11 +877,11 @@ export const MobilePortfolioView: React.FC<MobilePortfolioViewProps> = ({
         )}
 
         {/* Floating Language Switcher Capsule */}
-        <div className="ml-2 flex items-center rounded-xl bg-slate-900 border border-cyan-500/30 p-1 text-xs font-mono-code shrink-0">
-          <Globe className="w-3.5 h-3.5 text-cyan-400 mr-1 ml-0.5" />
+        <div className="flex items-center rounded-xl bg-slate-900 border border-cyan-500/30 p-0.5 sm:p-1 text-xs font-mono-code shrink-0">
+          <Globe className="w-3.5 h-3.5 text-cyan-400 mr-1 ml-0.5 shrink-0" />
           <button
             onClick={() => onLanguageChange('vi')}
-            className={`px-2 py-0.5 rounded-lg transition-colors cursor-pointer ${
+            className={`px-1.5 sm:px-2 py-0.5 rounded-lg transition-colors cursor-pointer text-[11px] sm:text-xs ${
               currentLang === 'vi' ? 'bg-cyan-500 text-slate-950 font-bold' : 'text-slate-400'
             }`}
           >
@@ -890,7 +890,7 @@ export const MobilePortfolioView: React.FC<MobilePortfolioViewProps> = ({
           <span className="text-cyan-500/30 px-0.5">|</span>
           <button
             onClick={() => onLanguageChange('en')}
-            className={`px-2 py-0.5 rounded-lg transition-colors cursor-pointer ${
+            className={`px-1.5 sm:px-2 py-0.5 rounded-lg transition-colors cursor-pointer text-[11px] sm:text-xs ${
               currentLang === 'en' ? 'bg-cyan-500 text-slate-950 font-bold' : 'text-slate-400'
             }`}
           >
